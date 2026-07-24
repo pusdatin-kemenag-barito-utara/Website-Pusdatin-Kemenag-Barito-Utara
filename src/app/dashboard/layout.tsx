@@ -17,14 +17,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (trustedCookie) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const [cookieUserId, signature] = trustedCookie.split('.');
-        if (cookieUserId === session.user.id) {
-          const secret = process.env.TURNSTILE_SECRET_KEY || 'pusdatin_secret_key';
-          const expectedSignature = crypto.createHmac('sha256', secret).update(session.user.id).digest('hex');
-          if (signature === expectedSignature) {
-            isTrusted = true;
-          }
-        }
+        const { verifyTrustedDevice } = await import("@/lib/trusted-device");
+        isTrusted = await verifyTrustedDevice(session.user.id, trustedCookie);
       }
     }
     

@@ -63,10 +63,10 @@ export const metadata: Metadata = {
       "Portal resmi pengelolaan data master dan ekosistem aplikasi terpadu Kementerian Agama Kabupaten Barito Utara.",
     images: [
       {
-        url: "/branding/kemenag.svg",
+        url: "/branding/pusdatin.png",
         width: 800,
         height: 800,
-        alt: "Logo Kementerian Agama Kabupaten Barito Utara",
+        alt: "Logo PUSDATIN Kemenag Kabupaten Barito Utara",
       },
     ],
   },
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     title: "PUSDATIN - Pusat Data dan Teknologi Informasi Kemenag Barito Utara",
     description:
       "Portal resmi pengelolaan data master dan ekosistem aplikasi terpadu Kementerian Agama Kabupaten Barito Utara.",
-    images: ["/branding/kemenag.svg"],
+    images: ["/branding/pusdatin.png"],
   },
   robots: {
     index: true,
@@ -89,8 +89,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/branding/kemenag.svg",
-    apple: "/branding/kemenag.svg",
+    icon: "/branding/pusdatin.png",
+    apple: "/branding/pusdatin.png",
   },
   appleWebApp: {
     capable: true,

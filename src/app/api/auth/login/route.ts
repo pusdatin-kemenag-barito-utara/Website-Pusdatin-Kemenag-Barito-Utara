@@ -68,14 +68,8 @@ export async function POST(request: NextRequest) {
     const trustedCookie = cookieStore.get('trusted_device')?.value;
     
     if (trustedCookie) {
-      const [cookieUserId, signature] = trustedCookie.split('.');
-      if (cookieUserId === authData.user.id) {
-         const secret = process.env.TURNSTILE_SECRET_KEY || 'pusdatin_secret_key';
-         const expectedSignature = crypto.createHmac('sha256', secret).update(authData.user.id).digest('hex');
-         if (signature === expectedSignature) {
-           isTrusted = true;
-         }
-      }
+      const { verifyTrustedDevice } = await import("@/lib/trusted-device");
+      isTrusted = await verifyTrustedDevice(authData.user.id, trustedCookie);
     }
 
     const returnTo = bodyReturnTo || new URL(request.url).searchParams.get('returnTo');

@@ -25,8 +25,9 @@ import {
   MoreVertical,
   Activity,
   Edit,
+  Trash2,
 } from "lucide-react";
-import { useUpdateApp } from "@/hooks/use-apps";
+import { useUpdateApp, useDeleteApp } from "@/hooks/use-apps";
 import { toast } from "@/components/ui/Toast";
 
 const parseIconUrl = (iconStr: string | null) => {
@@ -80,7 +81,20 @@ export function AppGrid({
   onToggle: (id: string, status: "online" | "maintenance") => void;
 }) {
   const [editingApp, setEditingApp] = useState<SateliteApp | null>(null);
+  const [deletingApp, setDeletingApp] = useState<SateliteApp | null>(null);
   const [confirmToggle, setConfirmToggle] = useState<{ id: string; status: "online" | "maintenance"; appName: string } | null>(null);
+  const deleteMutation = useDeleteApp();
+
+  const handleDeleteApp = async () => {
+    if (!deletingApp) return;
+    try {
+      await deleteMutation.mutateAsync(deletingApp.id);
+      toast("success", `Aplikasi ${deletingApp.name} berhasil dihapus`);
+      setDeletingApp(null);
+    } catch {
+      toast("error", "Gagal menghapus aplikasi");
+    }
+  };
 
   if (loading) {
     return (
@@ -150,13 +164,22 @@ export function AppGrid({
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setEditingApp(app)}
-                    className="shrink-0 rounded-full bg-emerald-50 p-2 text-emerald-600 ring-1 ring-emerald-100 transition-all hover:bg-emerald-100 hover:text-emerald-700 hover:ring-emerald-200"
-                    title="Edit Aplikasi"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => setEditingApp(app)}
+                      className="rounded-full bg-emerald-50 p-2 text-emerald-600 ring-1 ring-emerald-100 transition-all hover:bg-emerald-100 hover:text-emerald-700 hover:ring-emerald-200"
+                      title="Edit Aplikasi"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingApp(app)}
+                      className="rounded-full bg-rose-50 p-2 text-rose-600 ring-1 ring-rose-100 transition-all hover:bg-rose-100 hover:text-rose-700 hover:ring-rose-200"
+                      title="Hapus Aplikasi"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-5 mb-5 grid grid-cols-2 gap-2 sm:gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-2 sm:p-3 text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400">
@@ -303,6 +326,33 @@ export function AppGrid({
               }}
             >
               Ya, Ubah Status
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={!!deletingApp}
+        onClose={() => setDeletingApp(null)}
+        title="Hapus Aplikasi Satelit"
+      >
+        <div className="space-y-6">
+          <p className="text-slate-600 dark:text-slate-300">
+            Apakah Anda yakin ingin menghapus aplikasi <strong>{deletingApp?.name}</strong> dari sistem Pusdatin?
+          </p>
+          <p className="text-sm text-rose-600 bg-rose-50 dark:bg-rose-950/40 p-3 rounded-lg border border-rose-100 dark:border-rose-900/50">
+            ⚠️ Tindakan ini akan menghapus entri aplikasi satelit dari dashboard Pusdatin dan tidak dapat dibatalkan.
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setDeletingApp(null)}>
+              Batal
+            </Button>
+            <Button
+              className="bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500"
+              onClick={handleDeleteApp}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Menghapus..." : "Ya, Hapus Aplikasi"}
             </Button>
           </div>
         </div>

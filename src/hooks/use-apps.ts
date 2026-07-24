@@ -54,3 +54,12 @@ export function useCreateApp() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["apps"] }),
   });
 }
+
+export function useDeleteApp() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (appId: string) => api.delete<{ message: string }>(`/apps/${appId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["apps"] }),
+  });
+}
+

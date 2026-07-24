@@ -7,8 +7,8 @@ export function JsonLd() {
     "name": "PUSDATIN Kementerian Agama Kabupaten Barito Utara",
     "alternateName": "PUSDATIN Kemenag Barito Utara",
     "url": "https://pusdatin.kemenag-baritoutara.com",
-    "logo": "https://pusdatin.kemenag-baritoutara.com/branding/kemenag.svg",
-    "image": "https://pusdatin.kemenag-baritoutara.com/branding/kemenag.svg",
+    "logo": "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
+    "image": "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
     "description": "Pusat Data dan Teknologi Informasi — portal pengelolaan data master dan layanan aplikasi terpadu Kementerian Agama Kabupaten Barito Utara.",
     "address": {
       "@type": "PostalAddress",

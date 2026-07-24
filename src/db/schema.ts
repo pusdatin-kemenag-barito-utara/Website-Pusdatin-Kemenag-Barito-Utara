@@ -131,6 +131,21 @@ export const profilesPemohon = pusdatin.table("profiles_pemohon", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const trustedDevices = pusdatin.table("trusted_devices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 255 }).notNull(),
+  deviceName: varchar("device_name", { length: 255 }),
+  ipAddress: varchar("ip_address", { length: 50 }),
+  lastUsedAt: timestamp("last_used_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("trusted_devices_user_id_idx").on(table.userId),
+  expiresAtIdx: index("trusted_devices_expires_at_idx").on(table.expiresAt),
+}));
+
 // Alias for backward compatibility
 export { profiles as users };
+
 

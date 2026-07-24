@@ -14,6 +14,7 @@ export const env = {
   superAdminEmail: process.env.SUPER_ADMIN_EMAIL || "",
   pusdatinSchema: process.env.NEXT_PUBLIC_PUSDATIN_SCHEMA || "",
   redisUrl: process.env.REDIS_URL || "",
+  trustedDeviceSecret: process.env.TRUSTED_DEVICE_SECRET || process.env.TURNSTILE_SECRET_KEY || "",
 };
 
 if (!env.supabaseUrl) {

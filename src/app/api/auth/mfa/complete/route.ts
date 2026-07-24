@@ -23,10 +23,12 @@ export async function POST(request: NextRequest) {
     const returnTo = bodyReturnTo || new URL(request.url).searchParams.get('returnTo');
 
     if (trustDevice) {
-      const secret = process.env.TURNSTILE_SECRET_KEY || 'pusdatin_secret_key';
-      const signature = crypto.createHmac('sha256', secret).update(session.user.id).digest('hex');
-      const cookieValue = `${session.user.id}.${signature}`;
-      
+      const userAgent = request.headers.get("user-agent") ?? undefined;
+      const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
+
+      const { createTrustedDevice } = await import("@/lib/trusted-device");
+      const cookieValue = await createTrustedDevice(session.user.id, userAgent, ipAddress);
+
       const cookieStore = await cookies();
       cookieStore.set('trusted_device', cookieValue, {
         httpOnly: true,

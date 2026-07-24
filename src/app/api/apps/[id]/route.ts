@@ -51,3 +51,36 @@ export async function PATCH(
     return apiResponse({ message: "Internal server error" }, 500);
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  context: { params: any }
+) {
+  try {
+    const session = await getCurrentSessionContext();
+    if (!session.isAdmin) {
+      return apiResponse({ message: "Unauthorized" }, 401);
+    }
+
+    const resolvedParams = await context.params;
+    const id = resolvedParams.id;
+
+    if (!id) {
+      return apiResponse({ message: "ID aplikasi tidak valid" }, 400);
+    }
+
+    await db
+      .delete(satelliteApps)
+      .where(eq(satelliteApps.id, id));
+
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/");
+    revalidatePath("/dashboard/apps");
+
+    return apiResponse({ message: "Aplikasi berhasil dihapus" });
+  } catch (err) {
+    console.error("[APPS] DELETE error:", err);
+    return apiResponse({ message: "Gagal menghapus aplikasi" }, 500);
+  }
+}
+

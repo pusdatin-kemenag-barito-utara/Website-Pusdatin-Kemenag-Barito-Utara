@@ -11,15 +11,15 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#006838",
     icons: [
       {
-        src: "/branding/kemenag.svg",
+        src: "/branding/pusdatin.png",
         sizes: "192x192",
-        type: "image/svg+xml",
+        type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/branding/kemenag.svg",
+        src: "/branding/pusdatin.png",
         sizes: "512x512",
-        type: "image/svg+xml",
+        type: "image/png",
         purpose: "maskable",
       },
     ],
