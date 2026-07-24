@@ -6,6 +6,8 @@ node_modules/
 # Next.js build output
 .next
 out
+build/
+dist/
 
 # PWA files
 public/sw.js
@@ -14,8 +16,6 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/fallback-*.js
 public/swe-worker-*.js/
-build/
-dist/
 
 # Environment
 .env
@@ -23,6 +23,7 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 
 # IDE
 .vscode/
@@ -31,6 +32,7 @@ dist/
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
@@ -41,12 +43,24 @@ logs/
 *.log
 npm-debug.log*
 
-# Database
-drizzle/
+# Database & SQLite
 *.db
 *.sqlite
+
+# Testing & Reports
+coverage/
+test-results/
+playwright-report/
+
+# AI Assistants & Temporary Scripts
+.claude/
+.opencode/
+.antigravitycli/
+.gemini/
+scratch/
 
 # Misc
 .cache/
 .turbo/
 .eslintcache
+
