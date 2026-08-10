@@ -48,7 +48,8 @@ func main() {
 	go h.MonitorMetrics(ctx, 60*time.Second)
 
 	app := fiber.New(fiber.Config{
-		BodyLimit: 10 * 1024 * 1024,
+		BodyLimit:      10 * 1024 * 1024,
+		ReadBufferSize: 32 * 1024, // 32KB buffer to handle large cookie headers (prevents HTTP 431)
 	})
 	app.Use(recover.New())
 	router.Register(app, h, deps)

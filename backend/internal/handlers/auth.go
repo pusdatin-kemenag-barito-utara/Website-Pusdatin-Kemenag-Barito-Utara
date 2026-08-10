@@ -46,6 +46,9 @@ func (h *Handler) LoginHandler(c *fiber.Ctx) error {
 		return utils.Forbidden(c, "Akun ini tidak memiliki akses ke portal Pusdatin")
 	}
 
+	// Clear old chunked session cookies first to prevent Cookie header accumulation
+	auth.ClearSessionCookies(c)
+
 	// Write the Supabase session cookies (mirrors @supabase/ssr format).
 	if err := auth.WriteSessionCookies(c, token.Raw, h.Cfg.IsProduction); err != nil {
 		fmt.Printf("[API AUTH ERROR] WriteSessionCookies failed for email %s: %v\n", req.Email, err)
@@ -133,7 +136,6 @@ func (h *Handler) MFACompleteHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	session := auth.GetSession(c)
 	accessToken := auth.ExtractAccessToken(c)
 	if accessToken == "" && req.AccessToken != "" {
 		accessToken = req.AccessToken
@@ -147,31 +149,39 @@ func (h *Handler) MFACompleteHandler(c *fiber.Ctx) error {
 		accessToken = req.AccessToken
 	}
 
+	// Retrieve user directly from Supabase using the AAL2 access token
+	supaUser, err := h.Auth.GetUser(c.Context(), accessToken)
+	if err != nil || supaUser == nil || supaUser.ID == "" {
+		fmt.Printf("[MFA COMPLETE ERROR] GetUser failed for token: %v\n", err)
+		return utils.Unauthorized(c, "Sesi OTP tidak valid atau kedaluwarsa")
+	}
+
+	session := auth.BuildSessionContext(c.Context(), h.Cfg, h.Store, supaUser)
+
 	// Build a valid session payload JSON for WriteSessionCookies
 	sessionPayload, _ := json.Marshal(map[string]any{
 		"access_token": accessToken,
 		"token_type":   "bearer",
 		"expires_in":   3600,
-		"user":         session.User,
+		"user":         supaUser,
 	})
 	_ = auth.WriteSessionCookies(c, sessionPayload, h.Cfg.IsProduction)
 
-	if req.TrustDevice {
+	if req.TrustDevice && session != nil && session.User != nil && session.User.ID != "" {
 		userAgent := c.Get("User-Agent")
 		ipAddress := ip(c)
 		cookieValue, err := h.TD.Create(c.Context(), session.User.ID, userAgent, ipAddress)
-		if err != nil {
-			return utils.Internal(c, "Terjadi kesalahan server")
+		if err == nil {
+			c.Cookie(&fiber.Cookie{
+				Name:     auth.TrustedDeviceCookieName(),
+				Value:    cookieValue,
+				Path:     "/",
+				HTTPOnly: true,
+				Secure:   h.Cfg.IsProduction,
+				MaxAge:   30 * 24 * 60 * 60,
+				SameSite: "Lax",
+			})
 		}
-		c.Cookie(&fiber.Cookie{
-			Name:     auth.TrustedDeviceCookieName(),
-			Value:    cookieValue,
-			Path:     "/",
-			HTTPOnly: true,
-			Secure:   h.Cfg.IsProduction,
-			MaxAge:   30 * 24 * 60 * 60,
-			SameSite: "Lax",
-		})
 	}
 
 	returnTo := sanitizeReturnUrl(req.ReturnTo)
