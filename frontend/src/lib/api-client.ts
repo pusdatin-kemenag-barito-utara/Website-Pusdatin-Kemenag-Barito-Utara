@@ -11,6 +11,9 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     url += `?${searchParams}`;
   }
 
+  const token = typeof window !== "undefined" ? localStorage.getItem("pusdatin_token") : null;
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const res = await fetch(url, {
     credentials: "include",
     headers: {
@@ -18,6 +21,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
       "Cache-Control": "no-cache, no-store, must-revalidate",
       "Pragma": "no-cache",
       "Expires": "0",
+      ...authHeaders,
       ...fetchOptions.headers,
     },
     cache: "no-store",

@@ -1,0 +1,26 @@
+# Air config — hot reload backend Go
+# jalankan lewat: npm run dev  (dev:api => air)
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main.exe ./cmd/server"
+  bin = "tmp/main.exe"
+  include_ext = ["go", "env", "mod", "sum", "toml"]
+  exclude_dir = ["tmp", "bin"]
+  exclude_regex = ["_test\\.go"]
+  exclude_unchanged = true
+  delay = 300
+  stop_on_error = false
+  send_interrupt = false
+  kill_delay = 500
+  log = "air.log"
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = true

@@ -1,6 +1,4 @@
-"use client";
 
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
@@ -17,6 +15,15 @@ interface LandingHeroContentProps {
 }
 
 export function LandingHeroContent({ stats }: LandingHeroContentProps) {
+  const safeStats = stats || {
+    totalAppsCount: 0,
+    layananMasyarakat: 0,
+    layananPegawai: 0,
+    totalAdmin: 0,
+    totalPegawai: 0,
+    totalMasyarakat: 0,
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -70,7 +77,7 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
       {/* Main Hero Content */}
       <motion.div
         variants={containerVariants}
-        initial="hidden"
+        initial={false}
         animate="visible"
         className="relative z-10 flex-1 flex flex-col items-center justify-center text-center my-auto"
       >
@@ -108,26 +115,26 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
 
         {/* Buttons */}
         <motion.div variants={itemVariants} className="flex flex-wrap gap-3 justify-center">
-          <Link
+          <a
             href="/layanan"
             className="inline-flex items-center gap-2 bg-[#006838] hover:bg-[#005530] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-emerald-950/50 hover:scale-[1.02] active:scale-[0.98]"
           >
             Lihat Layanan Aplikasi
             <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
+          </a>
+          <a
             href="/profil"
             className="inline-flex items-center gap-2 border border-slate-700/80 bg-slate-900/60 backdrop-blur-md text-slate-200 hover:text-white font-medium text-xs sm:text-sm px-5 py-2.5 rounded-lg hover:bg-slate-800/80 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Tentang PUSDATIN
-          </Link>
+          </a>
         </motion.div>
       </motion.div>
 
       {/* Integrated Floating Stats Bar (Frosted Glass with Stagger Animation) */}
       <motion.div
         variants={statsBarVariants}
-        initial="hidden"
+        initial={false}
         animate="visible"
         className="relative z-10 w-full max-w-6xl mx-auto mt-8"
       >
@@ -146,12 +153,12 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 text-center"
           >
             {[
-              { label: "Sistem Integrasi", value: stats.totalAppsCount },
-              { label: "Layanan Masyarakat", value: stats.layananMasyarakat },
-              { label: "Layanan Pegawai", value: stats.layananPegawai },
-              { label: "Administrator", value: stats.totalAdmin },
-              { label: "Pegawai Terdaftar", value: stats.totalPegawai },
-              { label: "Masyarakat", value: stats.totalMasyarakat },
+              { label: "Sistem Integrasi", value: safeStats.totalAppsCount },
+              { label: "Layanan Masyarakat", value: safeStats.layananMasyarakat },
+              { label: "Layanan Pegawai", value: safeStats.layananPegawai },
+              { label: "Administrator", value: safeStats.totalAdmin },
+              { label: "Pegawai Terdaftar", value: safeStats.totalPegawai },
+              { label: "Masyarakat", value: safeStats.totalMasyarakat },
             ].map((item, i) => (
               <motion.div
                 key={i}

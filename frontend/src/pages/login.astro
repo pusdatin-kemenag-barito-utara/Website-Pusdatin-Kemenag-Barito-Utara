@@ -1,0 +1,11 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import LoginPage from "@/components/auth/LoginPage";
+
+const title = "Login Admin - PUSDATIN Kemenag Barito Utara";
+const canonical = "/login";
+---
+
+<BaseLayout {title} {canonical}>
+  <LoginPage client:load />
+</BaseLayout>

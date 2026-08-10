@@ -1,0 +1,51 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import LandingShell from "@/components/layout/LandingShell.astro";
+import { HeroThreeBackground } from "@/components/landing/HeroThreeBackground";
+import { LandingHeroContent } from "@/components/landing/LandingHeroContent";
+
+const title = "Beranda - Pusat Data dan Teknologi Informasi Kemenag Kabupaten Barito Utara";
+const description =
+  "Portal resmi PUSDATIN Kemenag Kabupaten Barito Utara. Layanan autentikasi SSO terpusat, pengaduan publik, dan integrasi seluruh aplikasi keagamaan.";
+const canonical = "/";
+
+const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+const fallbackStats = {
+  totalAppsCount: 0,
+  layananMasyarakat: 0,
+  layananPegawai: 0,
+  totalAdmin: 0,
+  totalPegawai: 0,
+  totalMasyarakat: 0,
+};
+
+let stats = fallbackStats;
+try {
+  const res = await fetch(`${backendUrl}/api/landing/stats`);
+  if (res.ok) {
+    const data = await res.json();
+    stats = data?.data?.stats ?? data?.stats ?? data ?? fallbackStats;
+  } else {
+    console.error("[INDEX ASTRO] Fetch stats error status:", res.status);
+  }
+} catch (e) {
+  console.error("[INDEX ASTRO] Fetch stats failed:", e);
+}
+
+const serializedStats = JSON.parse(JSON.stringify(stats));
+---
+
+<BaseLayout {title} {description} {canonical}>
+  <LandingShell>
+    <!-- Hero Section with Three.js 3D Animated Background & Integrated Stats -->
+    <section class="relative overflow-hidden bg-slate-950 text-white">
+      <div class="relative min-h-[580px] sm:min-h-[640px] flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8">
+        <!-- Three.js Interactive 3D Canvas -->
+        <HeroThreeBackground client:load />
+
+        <!-- Framer Motion Animated Hero Content & Floating Stats Bar -->
+        <LandingHeroContent client:load stats={serializedStats} />
+      </div>
+    </section>
+  </LandingShell>
+</BaseLayout>

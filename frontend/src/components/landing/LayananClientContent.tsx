@@ -1,7 +1,6 @@
-"use client";
 
 import { motion, Variants } from "framer-motion";
-import { ArrowUpRight, AppWindow, Building2, LayoutGrid } from "lucide-react";
+import { ArrowUpRight, AppWindow, Building2 } from "lucide-react";
 
 interface LayananClientContentProps {
   apps: any[];
@@ -94,7 +93,7 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[#006838] dark:text-emerald-400 group-hover:bg-[#006838]/10 transition-colors shadow-sm">
                       {app.icon && (app.icon.startsWith('/') || app.icon.startsWith('http')) ? (
-                        <img src={app.icon} alt={app.name} className="h-7 w-7 object-contain drop-shadow-sm" />
+                        <img src={app.icon} alt={app.name || "Logo Aplikasi"} loading="lazy" decoding="async" className="h-7 w-7 object-contain drop-shadow-sm" />
                       ) : (
                         <AppWindow className="h-6 w-6" />
                       )}

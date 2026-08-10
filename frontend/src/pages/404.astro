@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const title = "404 - Halaman Tidak Ditemukan | PUSDATIN Kemenag Barito Utara";
+const description = "Halaman yang Anda cari tidak tersedia atau telah dipindahkan.";
+const canonical = "/404";
+---
+
+<BaseLayout {title} {description} {canonical}>
+  <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div class="max-w-md text-center">
+      <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400 text-3xl font-bold">
+        404
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900">Halaman Tidak Ditemukan</h1>
+      <p class="mt-3 text-slate-600">
+        Halaman yang Anda cari tidak tersedia atau telah dipindahkan.
+      </p>
+      <a
+        href="/dashboard"
+        class="mt-6 inline-flex items-center rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+      >
+        Kembali ke Dashboard
+      </a>
+    </div>
+  </div>
+</BaseLayout>

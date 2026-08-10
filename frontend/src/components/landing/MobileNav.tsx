@@ -1,8 +1,6 @@
-"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -55,19 +53,19 @@ export function MobileNav() {
             </div>
 
             <nav className="flex flex-col p-3 gap-0.5">
-              <Link href="/" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Beranda</Link>
-              <Link href="/profil" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Profil</Link>
-              <Link href="/layanan" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Layanan Aplikasi</Link>
-              <Link href="/pengumuman" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Pengumuman</Link>
+              <a href="/" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Beranda</a>
+              <a href="/profil" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Profil</a>
+              <a href="/layanan" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Layanan Aplikasi</a>
+              <a href="/pengumuman" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Pengumuman</a>
 
               <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 px-3">
-                <Link
+                <a
                   href="/login"
                   onClick={closeMenu}
                   className="flex items-center justify-center rounded-md bg-[#006838] hover:bg-[#005530] px-4 py-2.5 text-sm font-medium text-white transition-colors w-full"
                 >
                   Login Admin
-                </Link>
+                </a>
               </div>
             </nav>
           </div>

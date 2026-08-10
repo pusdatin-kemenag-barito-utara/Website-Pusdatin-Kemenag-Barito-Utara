@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  pusdatin-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-https://db.kemenag-baritoutara.com}
+        PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY}
+        PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+        PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY:-0x4AAAAAADR1O_LSp1lgc3km}
+        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://pusdatin.kemenag-baritoutara.com}
+        BACKEND_URL: ${BACKEND_URL:-http://127.0.0.1:8080}
+    container_name: pusdatin_app
+    restart: always
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - PUBLIC_SUPABASE_URL=${PUBLIC_SUPABASE_URL}
+      - PUBLIC_SUPABASE_ANON_KEY=${PUBLIC_SUPABASE_ANON_KEY}
+      - PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+      - SUPABASE_URL=${SUPABASE_URL:-https://db.kemenag-baritoutara.com}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_PUBLISHABLE_KEY=${SUPABASE_PUBLISHABLE_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - PUBLIC_TURNSTILE_SITE_KEY=${PUBLIC_TURNSTILE_SITE_KEY}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
+      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL:-baritoutara@kemenag.go.id}
+      - PUBLIC_SITE_URL=${PUBLIC_SITE_URL:-https://pusdatin.kemenag-baritoutara.com}
+      - BACKEND_URL=${BACKEND_URL:-http://127.0.0.1:8080}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_ENDPOINT_URL=${R2_ENDPOINT_URL}
+      - R2_BUCKET_PUSDATIN=${R2_BUCKET_PUSDATIN:-data-pusdatin}
+      - TRUSTED_DEVICE_SECRET=${TRUSTED_DEVICE_SECRET}

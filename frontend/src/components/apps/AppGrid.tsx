@@ -1,16 +1,11 @@
-"use client";
 
 import { useState, useRef } from "react";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Toggle } from "@/components/ui/Toggle";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { formatDistanceToNow } from "date-fns";
-import { id } from "date-fns/locale";
 import type { SateliteApp } from "@/types";
 import { cn } from "@/lib/utils";
 import {
@@ -19,11 +14,6 @@ import {
   Database,
   Globe,
   Upload,
-  CheckCircle2,
-  AlertCircle,
-  Settings,
-  MoreVertical,
-  Activity,
   Edit,
   Trash2,
 } from "lucide-react";
@@ -57,18 +47,6 @@ const appIcons: Record<string, string> = {
   inklusi: "Inklusi",
   bot: "Bot",
   loket: "Loket",
-};
-
-const statusBadge: Record<string, "success" | "warning" | "danger"> = {
-  online: "success",
-  maintenance: "warning",
-  degraded: "danger",
-};
-
-const statusLabel: Record<string, string> = {
-  online: "Online",
-  maintenance: "Pemeliharaan",
-  degraded: "Gangguan",
 };
 
 export function AppGrid({
@@ -143,11 +121,14 @@ export function AppGrid({
               <CardBody className="relative flex h-full flex-col p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-1 items-center gap-4 min-w-0">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 text-sm font-bold text-emerald-700 shadow-inner ring-1 ring-emerald-200/50 transition-transform duration-300 group-hover:scale-110 overflow-hidden">
-                      {app.icon ? (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold text-lg ring-1 ring-emerald-100 dark:ring-emerald-900/50 shrink-0">
+                      {parseIconUrl(app.icon).url ? (
                         <img
                           src={parseIconUrl(app.icon).url}
-                          alt={app.name}
+                          alt={app.name || "Logo Aplikasi"}
+                          width={48}
+                          height={48}
+                          decoding="async"
                           className="h-full w-full object-contain"
                           style={{ transform: `scale(${parseIconUrl(app.icon).scale / 100})` }}
                         />
@@ -169,6 +150,7 @@ export function AppGrid({
                       onClick={() => setEditingApp(app)}
                       className="rounded-full bg-emerald-50 p-2 text-emerald-600 ring-1 ring-emerald-100 transition-all hover:bg-emerald-100 hover:text-emerald-700 hover:ring-emerald-200"
                       title="Edit Aplikasi"
+                      aria-label={`Edit ${app.name}`}
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -176,6 +158,7 @@ export function AppGrid({
                       onClick={() => setDeletingApp(app)}
                       className="rounded-full bg-rose-50 p-2 text-rose-600 ring-1 ring-rose-100 transition-all hover:bg-rose-100 hover:text-rose-700 hover:ring-rose-200"
                       title="Hapus Aplikasi"
+                      aria-label={`Hapus ${app.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -202,6 +185,7 @@ export function AppGrid({
                           rel="noreferrer"
                           className="shrink-0 text-emerald-600 hover:text-emerald-800 transition-colors"
                           title="Buka Schema URL"
+                          aria-label={`Buka Schema URL ${app.name}`}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -227,6 +211,7 @@ export function AppGrid({
                           rel="noreferrer"
                           className="shrink-0 text-emerald-600 hover:text-emerald-800 transition-colors"
                           title="Buka Link"
+                          aria-label={`Buka Website ${app.name}`}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -247,6 +232,7 @@ export function AppGrid({
                     />
                     <button 
                       type="button"
+                      aria-label={`Ubah status ${app.name} ke Online`}
                       onClick={() => {
                         if (app.status !== 'online') {
                           setConfirmToggle({ id: app.id, status: 'online', appName: app.name });
@@ -262,6 +248,7 @@ export function AppGrid({
                     </button>
                     <button 
                       type="button"
+                      aria-label={`Ubah status ${app.name} ke Maintenance`}
                       onClick={() => {
                         if (app.status !== 'maintenance') {
                           setConfirmToggle({ id: app.id, status: 'maintenance', appName: app.name });
@@ -280,7 +267,11 @@ export function AppGrid({
                     <div className="w-full sm:w-auto mt-2 sm:mt-0">
                       <Dropdown
                         trigger={
-                          <button className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-800 dark:hover:text-emerald-300">
+                          <button 
+                            type="button"
+                            aria-label={`Buka ${app.name} di Local`}
+                            className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-800 dark:hover:text-emerald-300"
+                          >
                             Buka di local
                             <Server className="h-3.5 w-3.5" />
                           </button>
@@ -476,7 +467,9 @@ function EditAppModal({
               {formData.icon ? (
                 <img
                   src={formData.icon}
-                  alt="Logo"
+                  alt="Preview Logo Aplikasi"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-contain"
                   style={{ transform: `scale(${formData.iconScale / 100})` }}
                 />

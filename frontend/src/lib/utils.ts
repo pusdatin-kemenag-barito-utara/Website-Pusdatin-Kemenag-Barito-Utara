@@ -62,3 +62,32 @@ export function exportToCsv(filename: string, rows: any[][]) {
   link.click();
   document.body.removeChild(link);
 }
+
+export function sanitizeReturnUrl(url: string | null | undefined): string | null {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim();
+
+  // Protect against protocol-relative URLs (e.g. //attacker.com) and backslash tricks (e.g. /\attacker.com)
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.startsWith("/\\") && !trimmed.startsWith("\\")) {
+    return trimmed;
+  }
+
+  // Allow internal or trusted domain absolute URLs
+  try {
+    const parsed = new URL(trimmed);
+    if (
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1" ||
+      parsed.hostname === "kemenag.go.id" ||
+      parsed.hostname.endsWith(".kemenag.go.id") ||
+      parsed.hostname === "kemenag-baritoutara.com" ||
+      parsed.hostname.endsWith(".kemenag-baritoutara.com")
+    ) {
+      return trimmed;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}

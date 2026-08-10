@@ -1,0 +1,111 @@
+---
+import "@fontsource-variable/plus-jakarta-sans";
+import "@/styles/global.css";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { env } from "@/lib/env";
+import { ClientRouter } from "astro:transitions";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title = "PUSDATIN - Pusat Data dan Teknologi Informasi Kemenag Kabupaten Barito Utara",
+  description = "Portal Pusat Data dan Teknologi Informasi — manajemen data master terpadu, layanan publik digital, dan sistem autentikasi Single Sign-On (SSO) Kementerian Agama Kabupaten Barito Utara.",
+  canonical = "/",
+  noIndex = false,
+} = Astro.props;
+
+const baseUrl = env.siteUrl || "https://pusdatin.kemenag-baritoutara.com";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "GovernmentOrganization",
+  name: "PUSDATIN Kementerian Agama Kabupaten Barito Utara",
+  alternateName: "PUSDATIN Kemenag Barito Utara",
+  url: "https://pusdatin.kemenag-baritoutara.com",
+  logo: "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
+  image: "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
+  description:
+    "Pusat Data dan Teknologi Informasi — portal pengelolaan data master dan layanan aplikasi terpadu Kementerian Agama Kabupaten Barito Utara.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Jl. Ahmad Yani No. 126",
+    addressLocality: "Muara Teweh",
+    addressRegion: "Kalimantan Tengah",
+    addressCountry: "ID",
+  },
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+62-851-1749-1212",
+    contactType: "customer service",
+    email: "baritoutara@kemenag.go.id",
+    availableLanguage: ["Indonesian"],
+  },
+  sameAs: [
+    "https://baritoutara.kemenag.go.id",
+    "https://youtube.com",
+    "https://instagram.com",
+    "https://facebook.com",
+  ],
+};
+---
+
+<!doctype html>
+<html lang="id" class="font-sans">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta name="theme-color" content="#059669" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow"} />
+    <meta
+      name="googlebot"
+      content={noIndex ? "noindex, nofollow" : "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"}
+    />
+    <meta name="format-detection" content="email=no, address=no, telephone=no" />
+    <meta name="keywords" content="PUSDATIN, Kemenag Barito Utara, Pusat Data dan Teknologi Informasi Kemenag, Kementerian Agama Barito Utara, Muara Teweh Kemenag, SSO Kemenag Barito Utara, Layanan Digital Kemenag, PTSP Kemenag Barito Utara, Data Keagamaan Barito Utara" />
+    <meta name="author" content="PUSDATIN Kemenag Barito Utara" />
+    <meta name="creator" content="PUSDATIN Kemenag Barito Utara" />
+    <meta name="publisher" content="Kementerian Agama Kabupaten Barito Utara" />
+
+    <link rel="canonical" href={`${baseUrl}${canonical}`} />
+    <link rel="icon" href="/branding/pusdatin.png" />
+    <link rel="apple-touch-icon" href="/branding/pusdatin.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PUSDATIN Kemenag" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:url" content={`${baseUrl}${canonical}`} />
+    <meta property="og:site_name" content="PUSDATIN Kemenag Barito Utara" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${baseUrl}/branding/pusdatin.png`} />
+    <meta property="og:image:width" content="800" />
+    <meta property="og:image:height" content="800" />
+    <meta property="og:image:alt" content="Logo PUSDATIN Kemenag Kabupaten Barito Utara" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${baseUrl}/branding/pusdatin.png`} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+    <ClientRouter />
+  </head>
+  <body class="font-sans antialiased">
+    <ThemeProvider client:load />
+    <slot />
+  </body>
+</html>

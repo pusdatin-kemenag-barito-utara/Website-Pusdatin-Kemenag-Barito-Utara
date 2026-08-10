@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { DashboardRoot } from "@/components/dashboard/DashboardRoot";
+
+const title = "Dashboard Admin - PUSDATIN Kemenag Barito Utara";
+const description = "Pusat kendali aplikasi, pengguna, dan infrastruktur PUSDATIN Kemenag Barito Utara.";
+const canonical = "/dashboard";
+const noIndex = true;
+---
+
+<BaseLayout {title} {description} {canonical} {noIndex}>
+  <DashboardRoot client:only="react" />
+</BaseLayout>

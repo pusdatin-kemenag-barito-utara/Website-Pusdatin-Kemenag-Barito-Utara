@@ -1,4 +1,3 @@
-"use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -7,7 +6,12 @@ import type { SateliteApp, SystemHealth } from "@/types";
 export function useApps() {
   return useQuery<SateliteApp[]>({
     queryKey: ["apps"],
-    queryFn: () => api.get<SateliteApp[]>("/apps"),
+    queryFn: async () => {
+      const res = await api.get<any>("/apps");
+      if (Array.isArray(res)) return res;
+      if (res && Array.isArray(res.data)) return res.data;
+      return [];
+    },
   });
 }
 

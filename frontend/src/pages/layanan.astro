@@ -1,0 +1,29 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import LandingShell from "@/components/layout/LandingShell.astro";
+import { LayananClientContent } from "@/components/landing/LayananClientContent";
+
+const title = "Layanan Aplikasi Terintegrasi - PUSDATIN Kemenag Barito Utara";
+const canonical = "/layanan";
+
+const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+let apps: any[] = [];
+
+try {
+  const res = await fetch(`${backendUrl}/api/landing/stats`);
+  if (res.ok) {
+    const data = await res.json();
+    apps = data?.data?.apps ?? data?.apps ?? [];
+  }
+} catch {
+  // Abaikan jika error
+}
+
+const serializedApps = JSON.parse(JSON.stringify(apps));
+---
+
+<BaseLayout {title} {canonical}>
+  <LandingShell>
+    <LayananClientContent client:load apps={serializedApps} />
+  </LandingShell>
+</BaseLayout>

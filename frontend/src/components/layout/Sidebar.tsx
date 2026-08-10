@@ -1,12 +1,8 @@
-"use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import { useApps } from "@/hooks/use-apps";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   Users,
   Monitor,
   Shield,
@@ -15,7 +11,6 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-  Database,
   Server,
 } from "lucide-react";
 
@@ -33,10 +28,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onClose, onLogout }: SidebarProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
   const appId = searchParams.get("appId");
-  const { data: apps } = useApps();
   const [penggunaOpen, setPenggunaOpen] = useState(
     pathname.startsWith("/dashboard/users") || pathname.startsWith("/dashboard/pejabat")
   );
@@ -44,10 +38,13 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
   return (
     <div className="flex h-full flex-col bg-white dark:bg-slate-900">
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-5">
-        <Link href="/dashboard/apps" className="flex items-center gap-3">
+        <Link to="/dashboard/apps" className="flex items-center gap-3">
           <img
             src="/branding/pusdatin.png"
-            alt="PUSDATIN"
+            alt="Logo PUSDATIN"
+            width={36}
+            height={36}
+            decoding="async"
             className="h-9 w-auto object-contain"
           />
           <div>
@@ -58,6 +55,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
         {onClose && (
           <button
             onClick={onClose}
+            aria-label="Tutup Sidebar Menu"
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
           >
             <X className="h-5 w-5" />
@@ -67,7 +65,6 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href && !appId;
           const isPengguna = item.label === "Pengguna";
 
           if (isPengguna) {
@@ -100,7 +97,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
                 >
                   <div className="overflow-hidden flex flex-col space-y-1 border-l border-slate-100 dark:border-slate-800 pl-3 ml-8">
                     <Link
-                      href={`${item.href}?type=internal_admin`}
+                      to={`${item.href}?type=internal_admin`}
                       onClick={onClose}
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors truncate",
@@ -112,7 +109,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
                       Admin Internal
                     </Link>
                     <Link
-                      href={`${item.href}?type=internal_pegawai`}
+                      to={`${item.href}?type=internal_pegawai`}
                       onClick={onClose}
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors truncate",
@@ -124,7 +121,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
                       Pegawai (PTSP)
                     </Link>
                     <Link
-                      href={`${item.href}?type=eksternal_masyarakat`}
+                      to={`${item.href}?type=eksternal_masyarakat`}
                       onClick={onClose}
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors truncate",
@@ -136,7 +133,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
                       Masyarakat Umum
                     </Link>
                     <Link
-                      href={`/dashboard/pejabat`}
+                      to={`/dashboard/pejabat`}
                       onClick={onClose}
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors truncate",
@@ -156,7 +153,7 @@ export function Sidebar({ onClose, onLogout }: SidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",

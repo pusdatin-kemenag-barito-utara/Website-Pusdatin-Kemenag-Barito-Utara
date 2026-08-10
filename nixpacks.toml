@@ -1,2 +1,17 @@
+# Nixpacks configuration for Coolify (Go + Node Monorepo)
+
+[providers]
+providers = ["go", "node"]
+
 [phases.setup]
-nixPkgs = ["...", "curl", "wget"]
+nixPkgs = ["go_1_22", "nodejs_22"]
+
+[phases.build]
+cmds = [
+  "npm --prefix frontend install",
+  "npm --prefix frontend run build",
+  "go -C backend build -o bin/api ./cmd/server"
+]
+
+[start]
+cmd = "npx concurrently -k -n WEB,API -c cyan,green \"node frontend/dist/server/entry.mjs\" \"./backend/bin/api\""

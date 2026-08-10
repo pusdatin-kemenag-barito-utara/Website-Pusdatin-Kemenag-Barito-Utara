@@ -1,9 +1,8 @@
-"use client";
 
 import { Table } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import type { User } from "@/types";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 
 interface UserTableProps {
   data: User[];
@@ -27,7 +26,9 @@ export function UserTable({ data, loading, onEdit, onDelete, isPegawai, sortKey,
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <img
                   src="/branding/kemenag.svg"
-                  alt="Kemenag"
+                  alt="Kemenag Logo"
+                  loading="lazy"
+                  decoding="async"
                   className="h-6 w-6 object-contain"
                 />
               </div>

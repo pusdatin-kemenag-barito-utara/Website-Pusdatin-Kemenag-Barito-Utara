@@ -1,4 +1,3 @@
-"use client";
 
 import { motion, Variants } from "framer-motion";
 import { Calendar, ArrowUpRight, CheckCircle2, Building2, MessageSquare } from "lucide-react";

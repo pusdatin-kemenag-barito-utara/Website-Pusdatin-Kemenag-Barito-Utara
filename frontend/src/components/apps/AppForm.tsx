@@ -1,4 +1,3 @@
-"use client";
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
@@ -14,10 +13,10 @@ interface AppFormProps {
   loading?: boolean;
 }
 
-const statusOptions = [
+const statusOptions: { value: SateliteApp["status"]; label: string }[] = [
   { value: "online", label: "Online" },
   { value: "maintenance", label: "Maintenance" },
-  { value: "offline", label: "Offline" },
+  { value: "degraded", label: "Gangguan" },
 ];
 
 export function AppForm({ onSubmit, onCancel, loading }: AppFormProps) {
@@ -124,7 +123,9 @@ export function AppForm({ onSubmit, onCancel, loading }: AppFormProps) {
             {formData.icon ? (
               <img
                 src={formData.icon}
-                alt="Logo"
+                alt="Preview Logo Aplikasi"
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-contain"
                 style={{ transform: `scale(${formData.iconScale / 100})` }}
               />

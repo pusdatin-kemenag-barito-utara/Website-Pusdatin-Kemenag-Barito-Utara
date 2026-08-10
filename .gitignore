@@ -1,66 +1,90 @@
-# Dependencies
+# ==========================================
+# UNIFIED PRODUCTION .GITIGNORE
+# Pusdatin Kemenag Barito Utara (FE + BE)
+# ==========================================
+
+# --- Environment & Secret Keys ---
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# --- Frontend (Node, Astro, Vite, Build Output) ---
 node_modules/
-.pnp
-.pnp.js
-
-# Next.js build output
-.next
-out
-build/
+frontend/node_modules/
 dist/
+frontend/dist/
+.astro/
+frontend/.astro/
+.cache/
+.turbo/
+.eslintcache
 
-# PWA files
+# --- PWA & Auto-Generated Service Workers ---
 public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
 public/fallback-*.js
-public/swe-worker-*.js/
+public/swe-worker-*.js
+frontend/public/sw.js
+frontend/public/sw.js.map
+frontend/public/workbox-*.js
+frontend/public/workbox-*.js.map
 
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
+# --- Backend (Go Air Hot Reload & Binaries) ---
+backend/bin/
+backend/tmp/
+bin/
+tmp/
+*.exe
+*.exe animate
+*.exe.stackdump
+*.dll
+*.so
+*.dylib
 
-# IDE
-.vscode/
+# --- Database & Storage Uploads ---
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+uploads/
+backend/uploads/
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Testing & Coverage ---
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# --- IDE & System Junk ---
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
 Thumbs.db
+ehthumbs.db
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# Database & SQLite
-*.db
-*.sqlite
-
-# Testing & Reports
-coverage/
-test-results/
-playwright-report/
-
-# AI Assistants & Temporary Scripts
+# --- AI Assistant & Temporary Scratch ---
+.gemini/
 .claude/
 .opencode/
 .antigravitycli/
-.gemini/
 scratch/
-
-# Misc
-.cache/
-.turbo/
-.eslintcache
-

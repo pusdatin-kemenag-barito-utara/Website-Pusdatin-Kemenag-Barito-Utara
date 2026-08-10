@@ -1,4 +1,3 @@
-"use client";
 
 import { useUIStore } from "@/stores/ui-store";
 import { Moon, Sun } from "lucide-react";
