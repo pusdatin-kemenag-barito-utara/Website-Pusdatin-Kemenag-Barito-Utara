@@ -1,1 +1,0 @@
-ALTER TABLE "pusdatin"."satellite_apps" ADD COLUMN "available_features" jsonb;
