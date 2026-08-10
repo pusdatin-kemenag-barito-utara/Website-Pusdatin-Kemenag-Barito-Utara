@@ -27,7 +27,7 @@ WORKDIR /app/frontend
 
 # Copy frontend package files
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy frontend source code
 COPY frontend/ ./
@@ -65,7 +65,7 @@ ENV PORT=3000
 
 # Copy root package files & install concurrently for runner
 COPY package.json ./
-RUN npm install --only=production concurrently
+RUN npm install --only=production concurrently --legacy-peer-deps
 
 # Copy Go backend binary from Stage 1
 COPY --from=backend-builder /app/backend/bin/api /app/backend/bin/api
