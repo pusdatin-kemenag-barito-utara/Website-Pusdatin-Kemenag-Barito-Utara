@@ -39,7 +39,7 @@ func main() {
 
 	store := database.NewStore(pool)
 
-	authClient := auth.NewClient(cfg.SupabaseURL, cfg.SupabasePublishableKey, cfg.SupabaseServiceRoleKey)
+	authClient := auth.NewClient(cfg.SupabaseURL, cfg.SupabaseAnonKey, cfg.SupabaseServiceRoleKey)
 	td := auth.NewTrustedDeviceService(store, cfg.TrustedDeviceSecret)
 
 	h := handlers.New(cfg, store, authClient, td)
