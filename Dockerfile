@@ -3,8 +3,9 @@
 # ==============================================================================
 
 # STAGE 1: Build Backend Go Binary
-FROM golang:1.22-alpine AS backend-builder
+FROM golang:1.23-alpine AS backend-builder
 WORKDIR /app/backend
+ENV GOTOOLCHAIN=auto
 
 # Install build dependencies
 RUN apk add --no-cache git gcc musl-dev
