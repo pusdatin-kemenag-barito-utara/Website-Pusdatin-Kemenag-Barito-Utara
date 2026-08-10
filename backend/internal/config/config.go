@@ -56,7 +56,7 @@ func Load() (*Config, error) {
 	env := getEnv("NODE_ENV", getEnv("APP_ENV", "development"))
 
 	cfg := &Config{
-		Port:                   getEnv("PORT", "8080"),
+		Port:                   getEnv("BACKEND_PORT", "8080"),
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		SupabaseURL:            getEnv("PUBLIC_SUPABASE_URL", os.Getenv("SUPABASE_URL")),
 		SupabaseAnonKey:        getEnv("PUBLIC_SUPABASE_ANON_KEY", os.Getenv("SUPABASE_ANON_KEY")),

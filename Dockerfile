@@ -57,12 +57,13 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Install runtime tools
-RUN apk add --no-cache ca-certificates tzdata
+# Install runtime tools (curl & wget required for Coolify healthcheck)
+RUN apk add --no-cache ca-certificates tzdata curl wget
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV BACKEND_PORT=8080
 
 # Copy root package files & install concurrently for runner
 COPY package.json ./
