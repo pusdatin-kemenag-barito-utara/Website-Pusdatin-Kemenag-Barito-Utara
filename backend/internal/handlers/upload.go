@@ -84,7 +84,11 @@ func (h *Handler) UploadFile(c *fiber.Ctx) error {
 // UploadsProxy streams an object from R2 at GET /uploads/apps/:file with local disk fallback.
 func (h *Handler) UploadsProxy(c *fiber.Ctx) error {
 	filename := c.Params("file")
-	if filename == "" || strings.Contains(filename, "..") || strings.Contains(filename, "/") {
+	if filename == "" {
+		filename = c.Params("*")
+	}
+	filename = filepath.Base(filename)
+	if filename == "" || filename == "." || filename == "/" {
 		return c.SendStatus(fiber.StatusNotFound)
 	}
 

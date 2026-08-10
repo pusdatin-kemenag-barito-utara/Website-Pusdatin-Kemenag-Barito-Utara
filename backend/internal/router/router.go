@@ -13,6 +13,7 @@ func Register(app *fiber.App, h *handlers.Handler, deps *auth.HandlerDeps) {
 	app.Get("/api/health", h.HealthHandler)
 	app.Get("/api/landing/stats", h.LandingStatsHandler)
 	app.Get("/uploads/apps/:file", h.UploadsProxy)
+	app.Get("/uploads/*", h.UploadsProxy)
 	app.All("/api/public/apps/:id/status", h.PublicAppStatus)
 
 	// Auth + SSO group (session resolved, no admin requirement).
