@@ -54,8 +54,10 @@ tmp/
 *.sqlite
 *.sqlite3
 backend/data/*.db
-uploads/
+# Ignore actual upload storage directories (NOT the Astro pages/uploads/ route)
+/uploads/
 backend/uploads/
+frontend/public/uploads/
 
 # --- Logs ---
 logs/
