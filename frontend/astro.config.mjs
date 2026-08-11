@@ -17,6 +17,7 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webmanifest}"],
+        navigateFallbackDenylist: [/^\/api/, /^\/uploads/],
       },
     }),
   ],

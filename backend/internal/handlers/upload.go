@@ -61,6 +61,18 @@ func (h *Handler) UploadFile(c *fiber.Ctx) error {
 
 	bucket := h.Cfg.R2BucketPusdatin
 	contentType := file.Header.Get("Content-Type")
+	if contentType == "" || contentType == "application/octet-stream" {
+		switch strings.ToLower(ext) {
+		case ".svg":
+			contentType = "image/svg+xml"
+		case ".png":
+			contentType = "image/png"
+		case ".jpg", ".jpeg":
+			contentType = "image/jpeg"
+		case ".webp":
+			contentType = "image/webp"
+		}
+	}
 
 	client, err := h.S3Client()
 	if err != nil {

@@ -13,19 +13,31 @@ interface Props {
 }
 
 const {
-  title = "PUSDATIN - Pusat Data dan Teknologi Informasi Kemenag Kabupaten Barito Utara",
-  description = "Portal Pusat Data dan Teknologi Informasi — manajemen data master terpadu, layanan publik digital, dan sistem autentikasi Single Sign-On (SSO) Kementerian Agama Kabupaten Barito Utara.",
+  title = "PUSDATIN KEMENAG BARITO UTARA",
+  description = "Portal Resmi Pusat Data dan Teknologi Informasi Kementerian Agama Kabupaten Barito Utara. Layanan autentikasi Single Sign-On (SSO) terpusat, manajemen aplikasi publik, dan portal keagamaan terpadu.",
   canonical = "/",
   noIndex = false,
 } = Astro.props;
 
 const baseUrl = env.siteUrl || "https://pusdatin.kemenag-baritoutara.com";
 
-const jsonLd = {
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "PUSDATIN KEMENAG BARITO UTARA",
+  alternateName: [
+    "PUSDATIN Kemenag Barito Utara",
+    "PUSDATIN KEMENAG BARUT",
+    "Pusdatin Kemenag Barito Utara",
+  ],
+  url: "https://pusdatin.kemenag-baritoutara.com",
+};
+
+const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "GovernmentOrganization",
-  name: "PUSDATIN Kementerian Agama Kabupaten Barito Utara",
-  alternateName: "PUSDATIN Kemenag Barito Utara",
+  name: "PUSDATIN KEMENAG BARITO UTARA",
+  alternateName: "PUSDATIN Kementerian Agama Kabupaten Barito Utara",
   url: "https://pusdatin.kemenag-baritoutara.com",
   logo: "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
   image: "https://pusdatin.kemenag-baritoutara.com/branding/pusdatin.png",
@@ -52,6 +64,37 @@ const jsonLd = {
     "https://facebook.com",
   ],
 };
+
+const sitelinksJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    {
+      "@type": "SiteNavigationElement",
+      position: 1,
+      name: "Layanan Aplikasi",
+      url: "https://pusdatin.kemenag-baritoutara.com/layanan",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 2,
+      name: "Profil Organisasi",
+      url: "https://pusdatin.kemenag-baritoutara.com/profil",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 3,
+      name: "Pengumuman Resmi",
+      url: "https://pusdatin.kemenag-baritoutara.com/pengumuman",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 4,
+      name: "Login Admin",
+      url: "https://pusdatin.kemenag-baritoutara.com/login",
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -71,10 +114,11 @@ const jsonLd = {
       content={noIndex ? "noindex, nofollow" : "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"}
     />
     <meta name="format-detection" content="email=no, address=no, telephone=no" />
-    <meta name="keywords" content="PUSDATIN, Kemenag Barito Utara, Pusat Data dan Teknologi Informasi Kemenag, Kementerian Agama Barito Utara, Muara Teweh Kemenag, SSO Kemenag Barito Utara, Layanan Digital Kemenag, PTSP Kemenag Barito Utara, Data Keagamaan Barito Utara" />
-    <meta name="author" content="PUSDATIN Kemenag Barito Utara" />
-    <meta name="creator" content="PUSDATIN Kemenag Barito Utara" />
-    <meta name="publisher" content="Kementerian Agama Kabupaten Barito Utara" />
+    <meta name="keywords" content="PUSDATIN, PUSDATIN KEMENAG BARITO UTARA, Kemenag Barito Utara, Pusat Data dan Teknologi Informasi Kemenag, Kementerian Agama Barito Utara, Muara Teweh Kemenag, SSO Kemenag Barito Utara, Layanan Digital Kemenag, PTSP Kemenag Barito Utara, Data Keagamaan Barito Utara" />
+    <meta name="author" content="PUSDATIN KEMENAG BARITO UTARA" />
+    <meta name="creator" content="PUSDATIN KEMENAG BARITO UTARA" />
+    <meta name="publisher" content="PUSDATIN KEMENAG BARITO UTARA" />
+    <meta name="application-name" content="PUSDATIN KEMENAG BARITO UTARA" />
 
     <link rel="canonical" href={`${baseUrl}${canonical}`} />
     <link rel="icon" href="/branding/pusdatin.png" />
@@ -82,26 +126,28 @@ const jsonLd = {
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="PUSDATIN Kemenag" />
+    <meta name="apple-mobile-web-app-title" content="PUSDATIN KEMENAG BARITO UTARA" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="id_ID" />
     <meta property="og:url" content={`${baseUrl}${canonical}`} />
-    <meta property="og:site_name" content="PUSDATIN Kemenag Barito Utara" />
+    <meta property="og:site_name" content="PUSDATIN KEMENAG BARITO UTARA" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={`${baseUrl}/branding/pusdatin.png`} />
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="800" />
-    <meta property="og:image:alt" content="Logo PUSDATIN Kemenag Kabupaten Barito Utara" />
+    <meta property="og:image:alt" content="Logo PUSDATIN KEMENAG BARITO UTARA" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`${baseUrl}/branding/pusdatin.png`} />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(sitelinksJsonLd)} is:inline />
     <ClientRouter />
   </head>
   <body class="font-sans antialiased">

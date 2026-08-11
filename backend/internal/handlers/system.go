@@ -98,9 +98,9 @@ func collectRealtime() (*realtimeMetrics, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cpuPct, err := cpu.Percent(0, false)
-	if err != nil {
-		return nil, err
+	cpuPct, err := cpu.Percent(100*time.Millisecond, false)
+	if err != nil || len(cpuPct) == 0 {
+		cpuPct, _ = cpu.Percent(0, false)
 	}
 	cpuLoad := 0.0
 	if len(cpuPct) > 0 {
@@ -119,14 +119,15 @@ func collectRealtime() (*realtimeMetrics, error) {
 	}
 
 	var totalDisk, usedDisk uint64
-	if parts, err := disk.Partitions(false); err == nil {
+	if u, err := disk.Usage("/"); err == nil && u.Total > 0 {
+		totalDisk = u.Total
+		usedDisk = u.Used
+	} else if parts, err := disk.Partitions(false); err == nil {
 		for _, p := range parts {
-			u, err := disk.Usage(p.Mountpoint)
-			if err != nil {
-				continue
+			if u, err := disk.Usage(p.Mountpoint); err == nil {
+				totalDisk += u.Total
+				usedDisk += u.Used
 			}
-			totalDisk += u.Total
-			usedDisk += u.Used
 		}
 	}
 
