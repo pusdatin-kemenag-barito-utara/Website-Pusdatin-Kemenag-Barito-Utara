@@ -1,7 +1,7 @@
 
 import { useEffect, useState, useRef } from "react";
 
-export function AnimatedCounter({ value, duration = 2000 }: { value: number; duration?: number }) {
+export function AnimatedCounter({ value, duration = 600 }: { value: number; duration?: number }) {
   const targetValue = Number(value) || 0;
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);

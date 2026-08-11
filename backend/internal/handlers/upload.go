@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -30,6 +31,8 @@ func (h *Handler) S3Client() (*s3.Client, error) {
 	return s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(h.Cfg.R2EndpointURL)
 		o.UsePathStyle = true
+		o.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+		o.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
 	}), nil
 }
 
@@ -60,6 +63,9 @@ func (h *Handler) UploadFile(c *fiber.Ctx) error {
 	objectKey := "apps/" + filename
 
 	bucket := h.Cfg.R2BucketPusdatin
+	if bucket == "" {
+		bucket = "data-pusdatin"
+	}
 	contentType := file.Header.Get("Content-Type")
 	if contentType == "" || contentType == "application/octet-stream" {
 		switch strings.ToLower(ext) {
@@ -76,14 +82,18 @@ func (h *Handler) UploadFile(c *fiber.Ctx) error {
 
 	client, err := h.S3Client()
 	if err != nil {
+		fmt.Printf("[UPLOAD ERROR] S3Client init failed: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
+	contentLength := int64(len(data))
 	if _, err := client.PutObject(c.Context(), &s3.PutObjectInput{
-		Bucket:      aws.String(bucket),
-		Key:         aws.String(objectKey),
-		Body:        bytesReader(data),
-		ContentType: aws.String(contentType),
+		Bucket:        aws.String(bucket),
+		Key:           aws.String(objectKey),
+		Body:          bytes.NewReader(data),
+		ContentLength: aws.Int64(contentLength),
+		ContentType:   aws.String(contentType),
 	}); err != nil {
+		fmt.Printf("[UPLOAD ERROR] PutObject failed: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
