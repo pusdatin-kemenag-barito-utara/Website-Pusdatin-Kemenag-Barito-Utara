@@ -8,6 +8,9 @@ const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
 
 export default defineConfig({
   output: "server",
+  security: {
+    checkOrigin: false,
+  },
   adapter: node({ mode: "standalone" }),
   site: process.env.PUBLIC_SITE_URL || undefined,
   integrations: [

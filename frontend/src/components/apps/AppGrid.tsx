@@ -397,6 +397,7 @@ function EditAppModal({
 
       const res = await fetch("/api/upload", {
         method: "POST",
+        credentials: "include",
         headers,
         body: data,
       });

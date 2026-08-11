@@ -58,6 +58,7 @@ export function AppForm({ onSubmit, onCancel, loading }: AppFormProps) {
 
       const res = await fetch("/api/upload", {
         method: "POST",
+        credentials: "include",
         headers,
         body: data,
       });
