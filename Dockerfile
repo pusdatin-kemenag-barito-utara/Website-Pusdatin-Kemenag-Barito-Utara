@@ -64,6 +64,7 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV BACKEND_PORT=8080
+ENV BACKEND_URL=http://127.0.0.1:8080
 
 # Copy root package files & install concurrently for runner
 COPY package.json ./
