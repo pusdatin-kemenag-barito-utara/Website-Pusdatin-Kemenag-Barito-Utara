@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Toggle } from "@/components/ui/Toggle";
-import type { User, AppPermission } from "@/types";
+import type { User, AppPermission, SateliteApp } from "@/types";
 import { useApps } from "@/hooks/use-apps";
-import { UserCheck, Shield, KeyRound, Building2, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { UserCheck, Shield, Building2, User as UserIcon, Eye, EyeOff } from "lucide-react";
 
 const roleOptions = [
   { value: "super_admin", label: "Super Admin" },
@@ -101,7 +101,7 @@ export function UserForm({ initialData, defaultUserType, onSubmit, onCancel, loa
   useEffect(() => {
     if (apps && apps.length > 0) {
       setAppPermissions((prev) => {
-        return apps.map((app) => {
+        return apps.map((app: SateliteApp) => {
           const existing = prev.find((p) => p.appId === app.id);
           return existing || { appId: app.id, appName: app.name, role: "none" as const, features: [] };
         });
@@ -354,7 +354,7 @@ export function UserForm({ initialData, defaultUserType, onSubmit, onCancel, loa
 
           <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
             {appPermissions.map((perm) => {
-              const currentApp = apps?.find((a) => a.id === perm.appId);
+              const currentApp = apps?.find((a: SateliteApp) => a.id === perm.appId);
               const availableFeatures = currentApp?.availableFeatures || [];
 
               return (
@@ -387,7 +387,7 @@ export function UserForm({ initialData, defaultUserType, onSubmit, onCancel, loa
                   {/* Sub-features checkboxes */}
                   {perm.role !== "none" && availableFeatures.length > 0 && (
                     <div className="pl-3 border-l-2 border-emerald-500 ml-1 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-md">
-                      {availableFeatures.map((feat) => (
+                      {availableFeatures.map((feat: { id: string; label: string }) => (
                         <div key={feat.id} className="flex items-center gap-2">
                           <input
                             type="checkbox"

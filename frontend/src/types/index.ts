@@ -83,3 +83,16 @@ export interface ActivityData {
   date: string;
   count: number;
 }
+
+export interface Announcement {
+  id: string;
+  title: string;
+  tag: string;
+  description: string;
+  isImportant: boolean;
+  isActive: boolean;
+  orderIndex: number;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}

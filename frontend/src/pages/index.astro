@@ -4,35 +4,15 @@ import LandingShell from "@/components/layout/LandingShell.astro";
 import { HeroThreeBackground } from "@/components/landing/HeroThreeBackground";
 import { LandingHeroContent } from "@/components/landing/LandingHeroContent";
 
+import { getLandingData } from "@/lib/landing-data";
+
 const title = "PUSDATIN KEMENAG BARITO UTARA";
 const description =
   "Portal Resmi Pusat Data dan Teknologi Informasi Kementerian Agama Kabupaten Barito Utara. Layanan autentikasi Single Sign-On (SSO) terpusat, manajemen aplikasi publik, dan portal keagamaan terpadu.";
 const canonical = "/";
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
-const fallbackStats = {
-  totalAppsCount: 0,
-  layananMasyarakat: 0,
-  layananPegawai: 0,
-  totalAdmin: 0,
-  totalPegawai: 0,
-  totalMasyarakat: 0,
-};
-
-let stats = fallbackStats;
-try {
-  const res = await fetch(`${backendUrl}/api/landing/stats`);
-  if (res.ok) {
-    const data = await res.json();
-    stats = data?.data?.stats ?? data?.stats ?? data ?? fallbackStats;
-  } else {
-    console.error("[INDEX ASTRO] Fetch stats error status:", res.status);
-  }
-} catch (e) {
-  console.error("[INDEX ASTRO] Fetch stats failed:", e);
-}
-
-const serializedStats = JSON.parse(JSON.stringify(stats));
+const landingData = await getLandingData();
+const serializedStats = JSON.parse(JSON.stringify(landingData.stats));
 ---
 
 <BaseLayout {title} {description} {canonical}>

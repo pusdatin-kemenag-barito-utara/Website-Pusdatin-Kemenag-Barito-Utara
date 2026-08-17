@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { UserForm } from "@/components/users/UserForm";
 import { useCreateUser } from "@/hooks/use-users";

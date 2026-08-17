@@ -1,18 +1,9 @@
-
 import { motion, Variants } from "framer-motion";
-import { Calendar, ArrowUpRight, CheckCircle2, Building2, MessageSquare } from "lucide-react";
-
-interface Announcement {
-  id: number;
-  tag: string;
-  date: string;
-  title: string;
-  desc: string;
-  isImportant: boolean;
-}
+import { Calendar, ArrowUpRight, CheckCircle2, Building2, MessageSquare, Megaphone } from "lucide-react";
+import type { Announcement } from "@/types";
 
 interface PengumumanClientContentProps {
-  announcements: Announcement[];
+  announcements: (Announcement | any)[];
 }
 
 const containerVariants: Variants = {
@@ -34,6 +25,23 @@ const itemVariants: Variants = {
     transition: { duration: 0.5, ease: "easeOut" },
   },
 };
+
+function formatDisplayDate(dateStr?: string): string {
+  if (!dateStr) return "Terbaru";
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
+  } catch (err) {
+    console.debug("[formatDisplayDate] Invalid date string:", dateStr, err);
+  }
+  return dateStr;
+}
 
 export function PengumumanClientContent({ announcements }: PengumumanClientContentProps) {
   return (
@@ -85,50 +93,64 @@ export function PengumumanClientContent({ announcements }: PengumumanClientConte
           </p>
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-4 sm:space-y-5"
-        >
-          {announcements.map((item) => (
-            <motion.div
-              key={item.id}
-              variants={itemVariants}
-              whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
-              className={`group rounded-xl p-6 sm:p-7 border transition-all duration-200 ${
-                item.isImportant
-                  ? "bg-white dark:bg-slate-900/90 border-[#006838]/40 dark:border-emerald-500/40 shadow-sm"
-                  : "bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-              }`}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-[11px] font-bold px-3 py-1 rounded-md bg-[#006838]/10 dark:bg-emerald-500/10 text-[#006838] dark:text-emerald-400 border border-[#006838]/20 dark:border-emerald-500/20">
-                    {item.tag}
-                  </span>
-                  {item.isImportant && (
-                    <span className="text-xs font-semibold text-[#006838] dark:text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#006838] dark:text-emerald-400" /> Informasi Utama
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>{item.date}</span>
-                </div>
-              </div>
+        {announcements.length > 0 ? (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-4 sm:space-y-5"
+          >
+            {announcements.map((item) => {
+              const displayDate = formatDisplayDate(item.createdAt || item.date);
+              const contentText = item.description || item.desc || "";
 
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors mb-2">
-                {item.title}
-              </h3>
+              return (
+                <motion.div
+                  key={item.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+                  className={`group rounded-xl p-6 sm:p-7 border transition-all duration-200 ${
+                    item.isImportant
+                      ? "bg-white dark:bg-slate-900/90 border-[#006838]/40 dark:border-emerald-500/40 shadow-sm"
+                      : "bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[11px] font-bold px-3 py-1 rounded-md bg-[#006838]/10 dark:bg-emerald-500/10 text-[#006838] dark:text-emerald-400 border border-[#006838]/20 dark:border-emerald-500/20">
+                        {item.tag || "Informasi"}
+                      </span>
+                      {item.isImportant && (
+                        <span className="text-xs font-semibold text-[#006838] dark:text-emerald-400 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-[#006838] dark:text-emerald-400" /> Informasi Utama
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{displayDate}</span>
+                    </div>
+                  </div>
 
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                {item.desc}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors mb-2">
+                    {item.title}
+                  </h3>
+
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                    {contentText}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <div className="text-center py-16 bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <Megaphone className="w-10 h-10 text-slate-400 dark:text-slate-500 mx-auto mb-3" />
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Belum ada pengumuman resmi yang diterbitkan saat ini.
+            </p>
+          </div>
+        )}
 
         {/* WhatsApp Helpdesk Callout Card */}
         <motion.div

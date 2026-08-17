@@ -4,15 +4,6 @@ import (
 	"context"
 )
 
-type LandingStats struct {
-	TotalAppsCount   int64 `json:"totalAppsCount"`
-	LayananMasyarakat int64 `json:"layananMasyarakat"`
-	LayananPegawai   int64 `json:"layananPegawai"`
-	TotalAdmin       int64 `json:"totalAdmin"`
-	TotalPegawai     int64 `json:"totalPegawai"`
-	TotalMasyarakat  int64 `json:"totalMasyarakat"`
-}
-
 func (s *Store) LandingStats(ctx context.Context) (*LandingStats, error) {
 	st := &LandingStats{}
 

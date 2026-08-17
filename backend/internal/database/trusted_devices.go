@@ -5,23 +5,18 @@ import (
 	"time"
 )
 
-type TrustedDevice struct {
-	ID         string  `json:"id"`
-	UserID     string  `json:"userId"`
-	DeviceName *string `json:"deviceName"`
-	TokenHash  string  `json:"tokenHash"`
-	LastUsedAt *string `json:"lastUsedAt"`
-	ExpiresAt  *string `json:"expiresAt"`
-	CreatedAt  string  `json:"createdAt"`
-	IPAddress  *string `json:"ipAddress"`
-}
-
 func (s *Store) CreateTrustedDeviceWithIP(ctx context.Context, id, userID, deviceName, tokenHash string, expiresAt time.Time, ipAddress any) error {
 	_, err := s.pool.Exec(ctx, `
 		INSERT INTO kemenag_pusdatin.trusted_devices (id, user_id, device_name, token_hash, expires_at, ip_address)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (id) DO NOTHING`, id, userID, deviceName, tokenHash, expiresAt, ipAddress)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Auto-prune expired devices to keep database clean
+	_, _ = s.pool.Exec(ctx, `DELETE FROM kemenag_pusdatin.trusted_devices WHERE expires_at < now()`)
+	return nil
 }
 
 // GetValidTrustedDevice returns a non-expired trusted device for the user.

@@ -14,30 +14,19 @@ import (
 
 	"pusdatin/backend/internal/config"
 	"pusdatin/backend/internal/database"
+	"pusdatin/backend/internal/domain"
 )
 
 const sessionCookiePrefix = "sb-pusdatin-auth-token"
 
-// SessionUser is the resolved user object exposed to handlers.
-type SessionUser struct {
-	ID             string                      `json:"id"`
-	Email          string                      `json:"email"`
-	Name           string                      `json:"name"`
-	Role           string                      `json:"role"`
-	AppPermissions []database.AppPermission    `json:"appPermissions"`
-}
-
-type SessionContext struct {
-	User            *SessionUser
-	IsAuthenticated bool
-	IsAdmin         bool
-}
+type SessionUser = domain.SessionUser
+type SessionContext = domain.SessionContext
 
 // BuildSessionContext derives a SessionContext from a verified Supabase user,
 // mirroring lib/auth.ts getCurrentSessionContext.
-func BuildSessionContext(ctx context.Context, cfg *config.Config, store *database.Store, supaUser *AuthUser) *SessionContext {
-	fail := func() *SessionContext {
-		return &SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
+func BuildSessionContext(ctx context.Context, cfg *config.Config, store *database.Store, supaUser *domain.AuthUser) *domain.SessionContext {
+	fail := func() *domain.SessionContext {
+		return &domain.SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
 	}
 	if supaUser == nil || supaUser.ID == "" {
 		return fail()
@@ -56,7 +45,7 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 
 	role := "viewer"
 	var profile *database.User
-	var perms []database.AppPermission
+	var perms []domain.AppPermission
 
 	if isCentralSuperAdmin {
 		role = "super_admin"
@@ -76,7 +65,7 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 		}
 	}
 	if perms == nil {
-		perms = []database.AppPermission{}
+		perms = []domain.AppPermission{}
 	}
 
 	name := "Admin"
@@ -88,8 +77,8 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 		name = strings.Split(supaUser.Email, "@")[0]
 	}
 
-	return &SessionContext{
-		User: &SessionUser{
+	return &domain.SessionContext{
+		User: &domain.SessionUser{
 			ID:             supaUser.ID,
 			Email:          supaUser.Email,
 			Name:           name,
@@ -101,17 +90,16 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 	}
 }
 
-// ResolveSession rebuilds the session context from the Supabase cookies,
-// mirroring the old lib/auth.ts getCurrentSessionContext logic.
-func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Store, sc *Client, c *fiber.Ctx) *SessionContext {
+// ResolveSession rebuilds the session context from the Supabase cookies.
+func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Store, sc *Client, c *fiber.Ctx) *domain.SessionContext {
 	accessToken := ExtractAccessToken(c)
 	if accessToken == "" {
-		return &SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
+		return &domain.SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
 	}
 
 	supaUser, err := sc.GetUser(ctx, accessToken)
 	if err != nil || supaUser == nil || supaUser.ID == "" {
-		return &SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
+		return &domain.SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
 	}
 	return BuildSessionContext(ctx, cfg, store, supaUser)
 }
@@ -203,8 +191,6 @@ func accessTokenFromValue(combined string) string {
 
 // WriteSessionCookies writes the Supabase session into chunked cookies matching
 // the @supabase/ssr format: name.{i} with URI-encoded base64url("base64-" + json).
-// The session payload is slimmed down (only auth tokens + minimal user identity)
-// to keep the Cookie header small and avoid dev-server 431 errors.
 const maxChunkSize = 3180
 
 func WriteSessionCookies(c *fiber.Ctx, sessionJSON []byte, secure bool) error {
@@ -214,7 +200,6 @@ func WriteSessionCookies(c *fiber.Ctx, sessionJSON []byte, secure bool) error {
 
 	chunks := []string{}
 	for len(uriEncoded) > maxChunkSize {
-		// Split on a valid boundary (ASCII-safe here, QueryEscape output).
 		cut := maxChunkSize
 		chunks = append(chunks, uriEncoded[:cut])
 		uriEncoded = uriEncoded[cut:]
@@ -238,9 +223,6 @@ func WriteSessionCookies(c *fiber.Ctx, sessionJSON []byte, secure bool) error {
 	return nil
 }
 
-// slimSession keeps only the fields required to restore the session (middleware,
-// ExtractAccessToken and supabase-js cookie restore), dropping the bulky
-// Supabase `user` object (identities, factors, app_metadata, ...).
 func slimSession(raw []byte) []byte {
 	var session map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &session); err != nil {

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { ProgressBar } from "@/components/ui/ProgressBar";
 import { AppGrid } from "@/components/apps/AppGrid";
 import { AppForm } from "@/components/apps/AppForm";
 import { useApps, useToggleMaintenance, useBulkToggleMaintenance, useCreateApp } from "@/hooks/use-apps";

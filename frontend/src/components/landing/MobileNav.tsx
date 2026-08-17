@@ -53,10 +53,10 @@ export function MobileNav() {
             </div>
 
             <nav className="flex flex-col p-3 gap-0.5">
-              <a href="/" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Beranda</a>
-              <a href="/profil" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Profil</a>
-              <a href="/layanan" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Layanan Aplikasi</a>
-              <a href="/pengumuman" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Pengumuman</a>
+              <a href="/" data-astro-prefetch="hover" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Beranda</a>
+              <a href="/profil" data-astro-prefetch="hover" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Profil</a>
+              <a href="/layanan" data-astro-prefetch="hover" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Layanan Aplikasi</a>
+              <a href="/pengumuman" data-astro-prefetch="hover" onClick={closeMenu} className="px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">Pengumuman</a>
 
               <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 px-3">
                 <a

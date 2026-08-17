@@ -3,9 +3,10 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import LoginPage from "@/components/auth/LoginPage";
 
 const title = "Login Admin - PUSDATIN Kemenag Barito Utara";
+const description = "Portal masuk aman autentikasi Single Sign-On (SSO) administrator dan operator PUSDATIN Kemenag Barito Utara.";
 const canonical = "/login";
 ---
 
-<BaseLayout {title} {canonical}>
+<BaseLayout {title} {description} {canonical}>
   <LoginPage client:load />
 </BaseLayout>

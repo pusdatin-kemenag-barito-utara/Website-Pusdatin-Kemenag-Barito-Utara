@@ -6,31 +6,11 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"pusdatin/backend/internal/domain"
 )
 
-type AuditFilter struct {
-	Action       string
-	TargetSchema string
-	StartDate    string
-	EndDate      string
-	Search       string
-	Limit        int
-	Offset       int
-}
-
-type AuditRow struct {
-	ID           string         `json:"id"`
-	Action       string         `json:"action"`
-	Target       string         `json:"target"`
-	TargetSchema *string        `json:"targetSchema"`
-	PerformedBy  string         `json:"performedBy"`
-	BeforeState  map[string]any `json:"beforeState"`
-	AfterState   map[string]any `json:"afterState"`
-	IP           *string        `json:"ip"`
-	Timestamp    string         `json:"timestamp"`
-}
-
-func (s *Store) ListAuditLogs(ctx context.Context, f AuditFilter) ([]AuditRow, int64, error) {
+func (s *Store) ListAuditLogs(ctx context.Context, f domain.AuditFilter) ([]domain.AuditLog, int64, error) {
 	where := []string{}
 	args := []any{}
 	idx := 1
@@ -93,9 +73,9 @@ func (s *Store) ListAuditLogs(ctx context.Context, f AuditFilter) ([]AuditRow, i
 	}
 	defer rows.Close()
 
-	logs := []AuditRow{}
+	logs := []domain.AuditLog{}
 	for rows.Next() {
-		var r AuditRow
+		var r domain.AuditLog
 		var schema, ip *string
 		var beforeRaw, afterRaw []byte
 		var ts any
@@ -132,7 +112,7 @@ func (s *Store) DeleteAuditLogs(ctx context.Context, targetSchema string) (int64
 	return tag.RowsAffected(), nil
 }
 
-// InsertAuditLog records an entry (used by the audit service).
+// InsertAuditLog records an entry and auto-prunes logs older than 30 days.
 func (s *Store) InsertAuditLog(ctx context.Context, action, target, targetSchema, performedBy string, before, after any, ip string) error {
 	var beforeRaw, afterRaw []byte
 	var err error
@@ -157,5 +137,14 @@ func (s *Store) InsertAuditLog(ctx context.Context, action, target, targetSchema
 			(action, target, target_schema, performed_by, before_state, after_state, ip)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		action, target, targetSchema, performedBy, beforeRaw, afterRaw, ipPtr)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Auto-prune audit logs older than 30 days to keep database performant
+	_, _ = s.pool.Exec(ctx, `
+		DELETE FROM kemenag_pusdatin.audit_logs
+		WHERE timestamp < now() - INTERVAL '30 days'`)
+
+	return nil
 }

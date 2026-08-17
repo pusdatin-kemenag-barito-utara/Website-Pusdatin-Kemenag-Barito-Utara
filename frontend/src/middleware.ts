@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 
-const publicPaths = ["/login", "/maintenance", "/profil", "/layanan", "/pengumuman"];
+const publicPaths = ["/login", "/maintenance", "/profil", "/layanan", "/pengumuman", "/404"];
 
 function parseAccessToken(combinedCookie: string): { exp?: number; aal?: string } | null {
   if (!combinedCookie) return null;
@@ -51,15 +51,32 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith("/api") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
-    pathname === "/manifest.webmanifest"
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js" ||
+    pathname === "/favicon.ico" ||
+    pathname.includes(".")
   ) {
+    return next();
+  }
+
+  const isPublic = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(path),
+  );
+
+  // Jika halaman publik murni (profil, pengumuman, layanan, maintenance), langsung teruskan
+  if (isPublic && pathname !== "/login") {
     return next();
   }
 
   let hasSupabaseSession = false;
   let hasAal2 = false;
 
-  const cookieHeader = context.request.headers.get("cookie") || "";
+  let cookieHeader = "";
+  try {
+    cookieHeader = context.request?.headers?.get("cookie") || "";
+  } catch {
+    cookieHeader = "";
+  }
   const authCookies = cookieHeader
     .split(";")
     .map((part) => part.trim())
@@ -89,15 +106,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  const isPublic = publicPaths.some(
-    (path) => pathname === path || pathname.startsWith(path),
-  );
-
   if (!hasSupabaseSession && !isPublic && pathname !== "/") {
     return context.redirect("/login", 307);
   }
 
-  if (hasSupabaseSession && hasAal2 && (pathname === "/login" || pathname === "/")) {
+  if (hasSupabaseSession && (hasAal2 || !import.meta.env.PROD) && (pathname === "/login" || pathname === "/")) {
     return context.redirect("/dashboard/apps", 307);
   }
 

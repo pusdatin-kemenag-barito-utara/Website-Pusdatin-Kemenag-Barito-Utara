@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-type ActivityPoint struct {
-	Date  string `json:"date"`
-	Count int    `json:"count"`
-}
-
 func (s *Store) ReportActivity(ctx context.Context, days int) ([]ActivityPoint, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT to_char(DATE(timestamp), 'YYYY-MM-DD'), COUNT(*)::int
@@ -32,12 +27,6 @@ func (s *Store) ReportActivity(ctx context.Context, days int) ([]ActivityPoint, 
 		points = append(points, p)
 	}
 	return points, rows.Err()
-}
-
-type AppSummaryItem struct {
-	AppName string `json:"appName"`
-	Count   int64  `json:"count"`
-	Color   string `json:"color"`
 }
 
 // ReportAppSummary returns audit counts per satellite app over the last 30 days.
@@ -99,15 +88,6 @@ func (s *Store) ReportAppSummary(ctx context.Context) ([]AppSummaryItem, error) 
 	return result, nil
 }
 
-type DashboardStats struct {
-	TotalUsers  int64 `json:"totalUsers"`
-	ActiveUsers int64 `json:"activeUsers"`
-	TotalApps   int64 `json:"totalApps"`
-	OnlineApps  int64 `json:"onlineApps"`
-	TotalLogs   int64 `json:"totalLogs"`
-	TodayLogs   int64 `json:"todayLogs"`
-}
-
 func (s *Store) DashboardStats(ctx context.Context) (*DashboardStats, error) {
 	st := &DashboardStats{}
 	var err error
@@ -133,14 +113,6 @@ func (s *Store) DashboardStats(ctx context.Context) (*DashboardStats, error) {
 	return st, nil
 }
 
-type SystemHealth struct {
-	CPU        int    `json:"cpu"`
-	RAM        int    `json:"ram"`
-	Storage    int    `json:"storage"`
-	Uptime     string `json:"uptime"`
-	RecordedAt string `json:"recordedAt,omitempty"`
-}
-
 // LatestSystemMetrics returns the most recent metrics row for the health endpoint.
 func (s *Store) LatestSystemMetrics(ctx context.Context) (*SystemHealth, error) {
 	var h SystemHealth
@@ -163,11 +135,24 @@ func (s *Store) LatestSystemMetrics(ctx context.Context) (*SystemHealth, error) 
 	return &h, nil
 }
 
-// SaveSystemMetrics persists a metrics snapshot for the health endpoint.
+// SaveSystemMetrics persists a metrics snapshot for the health endpoint and keeps only the latest 100 records.
 func (s *Store) SaveSystemMetrics(ctx context.Context, h SystemHealth) error {
 	_, err := s.pool.Exec(ctx, `
 		INSERT INTO kemenag_pusdatin.system_metrics (cpu, ram, storage, uptime)
 		VALUES ($1, $2, $3, $4)`,
 		h.CPU, h.RAM, h.Storage, h.Uptime)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Auto-prune to keep only the latest 100 snapshots, preventing database bloat
+	_, _ = s.pool.Exec(ctx, `
+		DELETE FROM kemenag_pusdatin.system_metrics
+		WHERE id NOT IN (
+			SELECT id FROM kemenag_pusdatin.system_metrics
+			ORDER BY recorded_at DESC
+			LIMIT 100
+		)`)
+
+	return nil
 }

@@ -9,7 +9,13 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"pusdatin/backend/internal/domain"
 )
+
+type Factor = domain.Factor
+type AuthUser = domain.AuthUser
+type TokenResponse = domain.TokenResponse
 
 // Client wraps HTTP access to the Supabase Auth REST API.
 type Client struct {
@@ -28,35 +34,10 @@ func NewClient(baseURL, anonKey, serviceRole string) *Client {
 	}
 }
 
-type Factor struct {
-	ID         string `json:"id"`
-	FactorType string `json:"factor_type"`
-	Status     string `json:"status"`
-}
-
-type AuthUser struct {
-	ID           string         `json:"id"`
-	Email        string         `json:"email"`
-	AppMetadata  map[string]any `json:"app_metadata"`
-	UserMetadata map[string]any `json:"user_metadata"`
-	Factors      []Factor       `json:"factors"`
-}
-
-type TokenResponse struct {
-	AccessToken  string    `json:"access_token"`
-	TokenType    string    `json:"token_type"`
-	ExpiresIn    int       `json:"expires_in"`
-	RefreshToken string    `json:"refresh_token"`
-	User         *AuthUser `json:"user"`
-	// Raw is the full JSON body as returned by Supabase, used verbatim as the
-	// session cookie payload so the FE @supabase/ssr client can decode it.
-	Raw []byte
-}
-
 // SignInWithPassword exchanges email+password for a session token.
-func (c *Client) SignInWithPassword(ctx context.Context, email, password string) (*TokenResponse, error) {
+func (c *Client) SignInWithPassword(ctx context.Context, email, password string) (*domain.TokenResponse, error) {
 	body, _ := json.Marshal(map[string]string{"email": email, "password": password})
-	var out TokenResponse
+	var out domain.TokenResponse
 	resp, err := c.do(ctx, http.MethodPost, "/auth/v1/token?grant_type=password", c.anonHeaders(), bytes.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -74,8 +55,8 @@ func (c *Client) SignInWithPassword(ctx context.Context, email, password string)
 }
 
 // GetUser validates an access token and returns the authenticated user.
-func (c *Client) GetUser(ctx context.Context, accessToken string) (*AuthUser, error) {
-	var out AuthUser
+func (c *Client) GetUser(ctx context.Context, accessToken string) (*domain.AuthUser, error) {
+	var out domain.AuthUser
 	headers := map[string]string{
 		"apikey":        c.AnonKey,
 		"Authorization": "Bearer " + accessToken,
@@ -252,3 +233,5 @@ func truncate(s string, n int) string {
 	}
 	return s[:n]
 }
+
+var _ domain.IdentityProvider = (*Client)(nil)

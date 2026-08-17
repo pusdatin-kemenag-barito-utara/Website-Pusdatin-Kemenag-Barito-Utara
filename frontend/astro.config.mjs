@@ -8,6 +8,10 @@ const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
 
 export default defineConfig({
   output: "server",
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "hover",
+  },
   security: {
     checkOrigin: false,
   },
@@ -32,6 +36,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 3000,
     proxy: {
       "/api": backendUrl,
       "/uploads": backendUrl,

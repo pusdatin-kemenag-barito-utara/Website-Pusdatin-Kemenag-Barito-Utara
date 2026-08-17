@@ -4,7 +4,7 @@
   "private": true,
   "description": "Monorepo Pusdatin Kemenag Barito Utara — Astro frontend + Go Fiber backend",
   "scripts": {
-    "dev": "concurrently -k -n WEB,API -c cyan,green \"npm --prefix frontend run dev\" \"go -C backend run github.com/air-verse/air@v1.61.7 -c .air.toml\"",
+    "dev": "npx -y concurrently -k -p \"[{name}]\" -c \"cyan,magenta\" -n \"backend,frontend\" \"cd backend && air\" \"cd frontend && npm run dev\"",
     "dev:web": "npm --prefix frontend run dev",
     "dev:api": "go -C backend run github.com/air-verse/air@v1.61.7 -c .air.toml",
     "dev:api:plain": "go -C backend run ./cmd/server",

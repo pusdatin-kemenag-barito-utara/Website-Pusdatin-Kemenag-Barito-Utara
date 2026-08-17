@@ -3,11 +3,14 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import LandingShell from "@/components/layout/LandingShell.astro";
 import { ProfilClientContent } from "@/components/landing/ProfilClientContent";
 
+export const prerender = true;
+
 const title = "Profil Organisasi | PUSDATIN KEMENAG BARITO UTARA";
+const description = "Profil, visi, misi, dan struktur organisasi Pusat Data dan Teknologi Informasi Kementerian Agama Kabupaten Barito Utara.";
 const canonical = "/profil";
 ---
 
-<BaseLayout {title} {canonical}>
+<BaseLayout {title} {description} {canonical}>
   <LandingShell>
     <ProfilClientContent client:load />
   </LandingShell>

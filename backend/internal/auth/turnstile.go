@@ -7,7 +7,19 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"pusdatin/backend/internal/domain"
 )
+
+type Turnstile struct{}
+
+func NewTurnstileVerifier() *Turnstile {
+	return &Turnstile{}
+}
+
+func (t *Turnstile) Verify(ctx context.Context, secret, token string, isProduction bool) bool {
+	return VerifyTurnstile(ctx, secret, token, isProduction)
+}
 
 // VerifyTurnstile validates a Cloudflare Turnstile token (server-side).
 func VerifyTurnstile(ctx context.Context, secret, token string, isProduction bool) bool {
@@ -51,3 +63,5 @@ func VerifyTurnstile(ctx context.Context, secret, token string, isProduction boo
 
 	return false
 }
+
+var _ domain.TurnstileVerifier = (*Turnstile)(nil)

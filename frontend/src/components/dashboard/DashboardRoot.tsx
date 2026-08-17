@@ -60,6 +60,7 @@ import { ReportsPage } from "@/components/dashboard/pages/reports";
 import { UsersPage } from "@/components/dashboard/pages/users";
 import { NewUserPage } from "@/components/dashboard/pages/users-new";
 import { UserDetailPage } from "@/components/dashboard/pages/users-detail";
+import { AnnouncementsPage } from "@/components/dashboard/pages/announcements";
 
 function DashboardRoutes() {
   return (
@@ -74,6 +75,7 @@ function DashboardRoutes() {
       <Routes>
         <Route path="/dashboard" element={<Navigate to="/dashboard/apps" replace />} />
         <Route path="/dashboard/apps" element={<AppsPage />} />
+        <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
         <Route path="/dashboard/pejabat" element={<PejabatPage />} />
         <Route path="/dashboard/infrastructure" element={<InfrastructurePage />} />
         <Route path="/dashboard/reports" element={<ReportsPage />} />

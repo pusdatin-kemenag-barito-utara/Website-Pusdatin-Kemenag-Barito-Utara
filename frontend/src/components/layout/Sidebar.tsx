@@ -12,11 +12,13 @@ import {
   ChevronDown,
   ChevronUp,
   Server,
+  Megaphone,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard/apps", label: "Aplikasi", icon: Monitor },
   { href: "/dashboard/users", label: "Pengguna", icon: Users },
+  { href: "/dashboard/announcements", label: "Pengumuman", icon: Megaphone },
   { href: "/dashboard/audit", label: "Audit Log", icon: Shield },
   { href: "/dashboard/reports", label: "Laporan", icon: BarChart3 },
   { href: "/dashboard/infrastructure", label: "Infrastruktur", icon: Server },

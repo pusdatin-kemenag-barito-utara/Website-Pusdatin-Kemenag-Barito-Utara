@@ -98,10 +98,17 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
                         <AppWindow className="h-6 w-6" />
                       )}
                     </div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Online
-                    </span>
+                    {app.status === 'maintenance' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] font-semibold text-red-700 dark:text-red-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        Maintenance
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Online
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="mt-5 font-bold text-slate-900 dark:text-white text-base group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors">
@@ -115,14 +122,23 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
 
                 {app.url && (
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006838] dark:hover:bg-[#006838] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white transition-all duration-200 shadow-sm"
-                    >
-                      Akses Aplikasi <ArrowUpRight className="h-4 w-4" />
-                    </a>
+                    {app.status === 'maintenance' ? (
+                      <a
+                        href={`/maintenance?app=${encodeURIComponent(app.name)}`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-4 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300 transition-all duration-200 shadow-sm"
+                      >
+                        Sedang Pemeliharaan <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    ) : (
+                      <a
+                        href={app.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006838] dark:hover:bg-[#006838] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white transition-all duration-200 shadow-sm"
+                      >
+                        Akses Aplikasi <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    )}
                   </div>
                 )}
               </motion.div>

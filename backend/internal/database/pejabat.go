@@ -6,17 +6,6 @@ import (
 	"strings"
 )
 
-type Pejabat struct {
-	ID         string  `json:"id"`
-	Nama       string  `json:"nama"`
-	Email      string  `json:"email"`
-	NIP        *string `json:"nip"`
-	Jabatan    *string `json:"jabatan"`
-	UnitKerja  *string `json:"unitKerja"`
-	TipePejabat *string `json:"tipePejabat"`
-	OrderIndex int     `json:"orderIndex"`
-}
-
 func (s *Store) ListPejabat(ctx context.Context) ([]*Pejabat, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT u.id, u.name, u.email, pg.nip, pg.jabatan, pg.unit_kerja,

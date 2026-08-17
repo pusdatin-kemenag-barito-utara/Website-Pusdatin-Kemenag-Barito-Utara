@@ -13,7 +13,7 @@ const userSelectCols = `
 	pg.nip, pg.jabatan, pg.pangkat_golongan, pg.unit_kerja,
 	COALESCE(pm.no_hp, u.phone) AS no_hp,
 	COALESCE(pm.alamat, u.address) AS alamat,
-	pm.nik, pm.pekerjaan,
+	NULL::text AS nik, NULL::text AS pekerjaan,
 	u.created_at, u.updated_at`
 
 // ListUsers returns users with the given filters. userTypeFilter and appIDFilter are
@@ -143,7 +143,7 @@ func (s *Store) ListPermissionsForUsers(ctx context.Context, userIDs []string) (
 		return result, nil
 	}
 	rows, err := s.pool.Query(ctx, `
-		SELECT ap.app_id, ap.role, COALESCE(sa.name, ''), ap.features
+		SELECT ap.user_id, ap.app_id, ap.role, COALESCE(sa.name, ''), ap.features
 		FROM kemenag_pusdatin.app_permissions ap
 		LEFT JOIN kemenag_pusdatin.satellite_apps sa ON ap.app_id = sa.id
 		WHERE ap.user_id = ANY($1)`, userIDs)
@@ -153,13 +153,14 @@ func (s *Store) ListPermissionsForUsers(ctx context.Context, userIDs []string) (
 	defer rows.Close()
 
 	for rows.Next() {
+		var userID string
 		var p AppPermission
 		var featuresRaw []byte
-		if err := rows.Scan(&p.AppID, &p.Role, &p.AppName, &featuresRaw); err != nil {
+		if err := rows.Scan(&userID, &p.AppID, &p.Role, &p.AppName, &featuresRaw); err != nil {
 			return nil, err
 		}
 		p.Features = parseSliceJSON(featuresRaw)
-		result[p.AppID] = append(result[p.AppID], p)
+		result[userID] = append(result[userID], p)
 	}
 	return result, rows.Err()
 }
@@ -252,12 +253,11 @@ func (s *Store) UpdatePegawai(ctx context.Context, profileID, nip, jabatan, unit
 
 func (s *Store) UpsertPemohon(ctx context.Context, profileID, noHp, alamat, nik, pekerjaan string) error {
 	_, err := s.pool.Exec(ctx, `
-		INSERT INTO kemenag_pusdatin.profiles_pemohon (user_id, no_hp, alamat, nik, pekerjaan)
-		VALUES ($1, NULLIF($2, ''), NULLIF($3, ''), NULLIF($4, ''), NULLIF($5, ''))
+		INSERT INTO kemenag_pusdatin.profiles_pemohon (user_id, no_hp, alamat)
+		VALUES ($1, NULLIF($2, ''), NULLIF($3, ''))
 		ON CONFLICT (user_id) DO UPDATE SET
-			no_hp = EXCLUDED.no_hp, alamat = EXCLUDED.alamat,
-			nik = EXCLUDED.nik, pekerjaan = EXCLUDED.pekerjaan, updated_at = now()`,
-		profileID, noHp, alamat, nik, pekerjaan)
+			no_hp = EXCLUDED.no_hp, alamat = EXCLUDED.alamat, updated_at = now()`,
+		profileID, noHp, alamat)
 	return err
 }
 

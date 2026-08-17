@@ -14,7 +14,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { FileText, Activity, BarChart3 } from "lucide-react";
 

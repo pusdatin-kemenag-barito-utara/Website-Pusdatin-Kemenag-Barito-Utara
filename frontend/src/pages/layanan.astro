@@ -3,26 +3,17 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import LandingShell from "@/components/layout/LandingShell.astro";
 import { LayananClientContent } from "@/components/landing/LayananClientContent";
 
+import { getLandingData } from "@/lib/landing-data";
+
 const title = "Layanan Aplikasi Terintegrasi | PUSDATIN KEMENAG BARITO UTARA";
+const description = "Daftar portal dan aplikasi satelit terintegrasi dalam ekosistem Single Sign-On (SSO) Kementerian Agama Kabupaten Barito Utara.";
 const canonical = "/layanan";
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
-let apps: any[] = [];
-
-try {
-  const res = await fetch(`${backendUrl}/api/landing/stats`);
-  if (res.ok) {
-    const data = await res.json();
-    apps = data?.data?.apps ?? data?.apps ?? [];
-  }
-} catch {
-  // Abaikan jika error
-}
-
-const serializedApps = JSON.parse(JSON.stringify(apps));
+const landingData = await getLandingData();
+const serializedApps = JSON.parse(JSON.stringify(landingData.apps));
 ---
 
-<BaseLayout {title} {canonical}>
+<BaseLayout {title} {description} {canonical}>
   <LandingShell>
     <LayananClientContent client:load apps={serializedApps} />
   </LandingShell>
