@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useUpdateApp, useDeleteApp } from "@/hooks/use-apps";
 import { toast } from "@/components/ui/Toast";
+import { trackAppClick, trackAdminOperation } from "@/lib/analytics";
 
 const parseIconUrl = (iconStr: string | null) => {
   if (!iconStr) return { url: "", scale: 50 };
@@ -67,6 +68,7 @@ export function AppGrid({
     if (!deletingApp) return;
     try {
       await deleteMutation.mutateAsync(deletingApp.id);
+      trackAdminOperation("delete_app", deletingApp.name, { app_id: deletingApp.id });
       toast("success", `Aplikasi ${deletingApp.name} berhasil dihapus`);
       setDeletingApp(null);
     } catch {
@@ -209,6 +211,14 @@ export function AppGrid({
                           href={app.url}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() =>
+                            trackAppClick({
+                              id: app.id,
+                              name: app.name,
+                              url: app.url,
+                              schemaName: app.schemaName,
+                            })
+                          }
                           className="shrink-0 text-emerald-600 hover:text-emerald-800 transition-colors"
                           title="Buka Link"
                           aria-label={`Buka Website ${app.name}`}
@@ -416,7 +426,7 @@ function EditAppModal({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       await updateMutation.mutateAsync({
@@ -476,6 +486,8 @@ function EditAppModal({
                 <img
                   src={formData.icon}
                   alt="Preview Logo Aplikasi"
+                  width={80}
+                  height={80}
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-contain"

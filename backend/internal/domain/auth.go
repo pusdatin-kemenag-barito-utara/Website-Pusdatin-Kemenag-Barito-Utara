@@ -59,5 +59,5 @@ type IdentityProvider interface {
 
 // TurnstileVerifier abstracts Cloudflare Turnstile CAPTCHA validation.
 type TurnstileVerifier interface {
-	Verify(ctx context.Context, secret, token string, isProduction bool) bool
+	Verify(ctx context.Context, secret, token, remoteIP string, isProduction bool) bool
 }

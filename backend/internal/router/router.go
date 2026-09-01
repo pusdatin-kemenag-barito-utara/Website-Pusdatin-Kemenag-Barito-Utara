@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/handlers"
 	"pusdatin/backend/internal/middleware"
@@ -10,13 +10,12 @@ import (
 
 type Handlers struct {
 	Auth         *handlers.AuthHandler
-	User         *handlers.UserHandler
 	App          *handlers.AppHandler
-	Pejabat      *handlers.PejabatHandler
 	Report       *handlers.ReportHandler
 	System       *handlers.SystemHandler
 	Storage      *handlers.StorageHandler
 	Announcement *handlers.AnnouncementHandler
+	Backup       *handlers.BackupHandler
 }
 
 // Register wires all HTTP routes with appropriate middlewares and handlers.
@@ -29,13 +28,12 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	app.Get("/uploads/*", h.Storage.UploadsProxy)
 	app.All("/api/public/apps/:id/status", h.App.PublicAppStatus)
 
-	// Auth + SSO group (session resolved, no admin requirement)
+	// Auth group (admin session login/logout/mfa)
 	authGroup := app.Group("/api", middleware.AuthMiddleware(authService))
 	authGroup.Post("/auth/login", middleware.RateLimit("login", 5, 60000), h.Auth.LoginHandler)
 	authGroup.Post("/auth/logout", h.Auth.LogoutHandler)
 	authGroup.Post("/auth/mfa/complete", middleware.RateLimit("mfa", 5, 60000), h.Auth.MFACompleteHandler)
 	authGroup.Get("/auth/session", h.Auth.SessionHandler)
-	authGroup.Get("/sso/jump", h.Auth.SSOJumpHandler)
 
 	// Protected group (admin only)
 	admin := app.Group("/api", middleware.AuthMiddleware(authService), middleware.AdminRequired())
@@ -51,13 +49,6 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	admin.Get("/audit-logs", h.Report.ListAuditLogs)
 	admin.Delete("/audit-logs", h.Report.DeleteAuditLogs)
 
-	// User Management
-	admin.Get("/users", h.User.ListUsers)
-	admin.Post("/users", h.User.CreateUser)
-	admin.Get("/users/:id", h.User.GetUser)
-	admin.Put("/users/:id", h.User.UpdateUser)
-	admin.Delete("/users/:id", h.User.DeleteUser)
-
 	// App Management
 	admin.Get("/apps", h.App.ListApps)
 	admin.Post("/apps", h.App.CreateApp)
@@ -65,12 +56,6 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	admin.Delete("/apps/:id", h.App.DeleteApp)
 	admin.Put("/apps/:id/status", h.App.UpdateAppStatus)
 	admin.Post("/apps/bulk-status", h.App.BulkUpdateAppStatus)
-
-	// Pejabat Management
-	admin.Get("/pejabat", h.Pejabat.ListPejabat)
-	admin.Post("/pejabat", h.Pejabat.SetPejabat)
-	admin.Put("/pejabat/:id", h.Pejabat.UpdatePejabat)
-	admin.Delete("/pejabat/:id", h.Pejabat.DeletePejabat)
 
 	// Announcement Management
 	admin.Get("/announcements/admin", h.Announcement.ListAnnouncements)
@@ -82,4 +67,12 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	// File Storage & Cloudflare R2
 	admin.Post("/upload", h.Storage.UploadFile)
 	admin.Get("/r2/buckets", h.Storage.R2Buckets)
+
+	// Database Backup & Cloudflare R2 Daily Snapshots
+	admin.Post("/backup/trigger", h.Backup.TriggerBackup)
+	admin.Get("/backup/status", h.Backup.GetStatus)
+	admin.Get("/backup/history", h.Backup.ListHistory)
+	admin.Get("/backup/download", h.Backup.DownloadFile)
+	admin.Delete("/backup/snapshots", h.Backup.DeleteSnapshot)
+	admin.Post("/backup/prune", h.Backup.PruneSnapshots)
 }

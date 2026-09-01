@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type rateEntry struct {
@@ -37,7 +37,7 @@ func rateLimit(key string, limit, windowMs int) bool {
 
 // RateLimit is a Fiber middleware keyed by the given prefix.
 func RateLimit(prefix string, limit, windowMs int) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		ip := getClientIP(c)
 		if !rateLimit(prefix+":"+ip, limit, windowMs) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
@@ -49,7 +49,7 @@ func RateLimit(prefix string, limit, windowMs int) fiber.Handler {
 }
 
 // getClientIP mirrors lib/rate-limit.ts getClientIp.
-func getClientIP(c *fiber.Ctx) string {
+func getClientIP(c fiber.Ctx) string {
 	if xff := c.Get("X-Forwarded-For"); xff != "" {
 		for _, part := range strings.Split(xff, ",") {
 			if part = strings.TrimSpace(part); part != "" {

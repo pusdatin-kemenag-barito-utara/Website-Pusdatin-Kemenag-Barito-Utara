@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 
 	"pusdatin/backend/internal/auth"
 	"pusdatin/backend/internal/config"
 	"pusdatin/backend/internal/database"
 	"pusdatin/backend/internal/handlers"
+	"pusdatin/backend/internal/middleware"
 	"pusdatin/backend/internal/router"
 	"pusdatin/backend/internal/services"
 )
@@ -40,36 +41,37 @@ func main() {
 
 	// 3. Initialize Domain Services (Use-Cases)
 	authService := services.NewAuthService(cfg, store, store, store, authClient, turnstile, tdService)
-	userService := services.NewUserService(store, store, authClient)
 	appService := services.NewAppService(store, store)
-	pejabatService := services.NewPejabatService(store, store)
 	reportService := services.NewReportService(store, store, store, store)
 	systemService := services.NewSystemService(store)
 	storageService := services.NewStorageService(cfg)
 	announcementService := services.NewAnnouncementService(store, store)
+	backupService := services.NewBackupService(cfg, pool, storageService)
 
-	// 4. Background Daemons (Metrics Monitor)
+	// 4. Background Daemons (Metrics Monitor & Midnight Backup Scheduler)
 	go systemService.StartMetricsMonitor(ctx, 60*time.Second)
+	backupService.StartMidnightScheduler(ctx)
 
 	// 5. Initialize Primary Adapters (HTTP Handlers)
 	h := &router.Handlers{
 		Auth:         handlers.NewAuthHandler(cfg, authService),
-		User:         handlers.NewUserHandler(userService),
 		App:          handlers.NewAppHandler(appService),
-		Pejabat:      handlers.NewPejabatHandler(pejabatService),
 		Report:       handlers.NewReportHandler(reportService),
 		System:       handlers.NewSystemHandler(systemService),
 		Storage:      handlers.NewStorageHandler(storageService),
 		Announcement: handlers.NewAnnouncementHandler(announcementService),
+		Backup:       handlers.NewBackupHandler(backupService),
 	}
 
 	// 6. Setup Fiber Web Server
 	app := fiber.New(fiber.Config{
-		AppName:        "PTSP Kemenag Barito Utara API (Enterprise Clean Architecture v2.1)",
+		AppName:        "PTSP Kemenag Barito Utara API (Enterprise Clean Architecture v3.0)",
 		BodyLimit:      10 * 1024 * 1024,
 		ReadBufferSize: 32 * 1024, // 32KB buffer to handle large cookie headers (prevents HTTP 431)
 	})
 	app.Use(recover.New())
+	app.Use(middleware.EnterpriseLogger())
+	app.Use(middleware.EnterpriseHeadersMiddleware())
 
 	// 7. Register HTTP Routes
 	router.Register(app, h, authService)

@@ -44,9 +44,11 @@ export default function LoginPage() {
             <img
               src="/branding/pusdatin.png"
               alt="Logo PUSDATIN"
-              loading="lazy"
+              width={96}
+              height={96}
+              loading="eager"
               decoding="async"
-              className="h-24 w-auto drop-shadow-lg object-contain"
+              className="h-24 w-24 drop-shadow-lg object-contain"
             />
           </div>
           <h1 className="text-4xl font-bold text-white mb-4 tracking-tight drop-shadow-sm">
@@ -77,9 +79,11 @@ export default function LoginPage() {
               <img
                 src="/branding/pusdatin.png"
                 alt="Logo PUSDATIN Mobile"
-                loading="lazy"
+                width={64}
+                height={64}
+                loading="eager"
                 decoding="async"
-                className="h-16 w-auto object-contain"
+                className="h-16 w-16 object-contain"
               />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -105,8 +109,10 @@ export default function LoginPage() {
                 <div className="space-y-1">
                   <Input
                     id="email"
+                    name="email"
                     label="Alamat Email"
                     type="email"
+                    autoComplete="username"
                     placeholder="admin@kemenag.go.id"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -119,8 +125,10 @@ export default function LoginPage() {
                 <div className="space-y-1 relative">
                   <Input
                     id="password"
+                    name="password"
                     label="Kata Sandi"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     placeholder="Masukkan kata sandi"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -141,7 +149,7 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                <div className="pt-2 flex justify-center">
+                <div className="pt-2 w-full">
                   <Turnstile onVerify={setTurnstileToken} />
                 </div>
 
@@ -188,7 +196,7 @@ export default function LoginPage() {
 
               {mfaState === 'enroll' && qrCode && (
                 <div className="flex justify-center mb-6 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
-                  <img src={qrCode} alt="QR Code 2FA" loading="lazy" decoding="async" className="w-48 h-48" />
+                  <img src={qrCode} alt="QR Code 2FA" width={192} height={192} loading="lazy" decoding="async" className="w-48 h-48" />
                 </div>
               )}
 
@@ -196,8 +204,10 @@ export default function LoginPage() {
                 <div className="space-y-1">
                   <Input
                     id="totp"
+                    name="totp"
                     label="Kode OTP"
                     type="text"
+                    autoComplete="one-time-code"
                     placeholder="******"
                     value={verifyCode}
                     onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}

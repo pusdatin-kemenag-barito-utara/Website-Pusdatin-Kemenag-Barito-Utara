@@ -14,30 +14,30 @@ import {
 const servicesList = [
   {
     icon: Database,
-    title: "Master Data & Integrasi",
-    desc: "Single Source of Truth untuk seluruh data pegawai, pemohon, dan aset digital Kementerian Agama Kabupaten Barito Utara.",
-    badge: "Core Data",
+    title: "Direktori & Integrasi",
+    desc: "Pusat direktori dan katalog resmi seluruh aplikasi layanan digital Kementerian Agama Kabupaten Barito Utara.",
+    badge: "Ekosistem",
     color: "from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
   },
   {
     icon: KeyRound,
-    title: "Autentikasi Terpusat (SSO)",
-    desc: "Akses sekali login yang aman untuk seluruh aplikasi layanan publik dan internal tanpa perlu mengingat banyak kredensial.",
+    title: "Portal Super Admin",
+    desc: "Manajemen kontrol terpusat untuk konfigurasi aplikasi, pengumuman resmi, dan audit log sistem.",
     badge: "Keamanan",
     color: "from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
   },
   {
     icon: BarChart3,
     title: "Monitoring Real-Time",
-    desc: "Dashboard eksekutif untuk memantau performa, trafik, dan laporan penggunaan aplikasi secara langsung.",
+    desc: "Dashboard eksekutif untuk memantau performa, trafik, dan log audit penggunaan aplikasi secara langsung.",
     badge: "Analitik",
     color: "from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
   },
   {
     icon: AppWindow,
     title: "Manajemen Aplikasi Satelit",
-    desc: "Kontrol penuh status pemeliharaan, rilis versi, dan hak akses seluruh aplikasi terhubung dari satu tempat.",
-    badge: "Ekosistem",
+    desc: "Kontrol penuh status pemeliharaan, rilis versi, dan integrasi seluruh aplikasi terhubung dari satu tempat.",
+    badge: "Layanan",
     color: "from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
   }
 ];
@@ -86,7 +86,7 @@ export function ProfilClientContent() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Pusat Data dan Teknologi Informasi — penggerak utama transformasi digital, pengelola data master terpadu, dan infrastruktur autentikasi terpusat.
+            Pusat Data dan Teknologi Informasi — penggerak utama transformasi digital, pengelola direktori layanan terpadu, dan portal informasi resmi.
           </p>
         </motion.div>
       </section>

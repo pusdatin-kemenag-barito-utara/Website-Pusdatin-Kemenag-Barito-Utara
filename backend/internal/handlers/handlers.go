@@ -3,7 +3,7 @@ package handlers
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/domain"
 	"pusdatin/backend/internal/middleware"
@@ -11,23 +11,23 @@ import (
 )
 
 // body decodes a JSON request body into v (empty body allowed).
-func body(c *fiber.Ctx, v any) error {
+func body(c fiber.Ctx, v any) error {
 	if len(c.Body()) == 0 {
 		return nil
 	}
-	if err := c.BodyParser(v); err != nil {
+	if err := c.Bind().Body(v); err != nil {
 		return utils.Bad(c, "Format body tidak valid")
 	}
 	return nil
 }
 
 // clientIP extracts the client IP address.
-func clientIP(c *fiber.Ctx) string {
+func clientIP(c fiber.Ctx) string {
 	return middleware.ClientIP(c)
 }
 
 // actorEmail extracts the email of the authenticated user from the request session.
-func actorEmail(c *fiber.Ctx) string {
+func actorEmail(c fiber.Ctx) string {
 	s := middleware.GetSession(c)
 	if s != nil && s.User != nil && s.User.Email != "" {
 		return s.User.Email
@@ -41,7 +41,7 @@ func nowISO() string {
 }
 
 // handleError maps domain errors to proper HTTP response codes.
-func handleError(c *fiber.Ctx, err error) error {
+func handleError(c fiber.Ctx, err error) error {
 	if err == nil {
 		return nil
 	}

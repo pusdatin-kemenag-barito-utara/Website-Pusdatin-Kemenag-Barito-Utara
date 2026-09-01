@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -23,12 +22,35 @@ import (
 	"pusdatin/backend/internal/domain"
 )
 
+type MemoryCachedObject struct {
+	Data        []byte
+	ContentType string
+}
+
+// Shared pooled HTTP client for Cloudflare R2 Management REST API
+var r2APIHTTPClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        50,
+		MaxIdleConnsPerHost: 20,
+		IdleConnTimeout:     90 * time.Second,
+		TLSHandshakeTimeout: 3 * time.Second,
+	},
+}
+
 type StorageService struct {
-	cfg *config.Config
+	cfg           *config.Config
+	cache         map[string]*MemoryCachedObject
+	bucketCache   []map[string]any
+	bucketCacheAt time.Time
+	mu            sync.RWMutex
 }
 
 func NewStorageService(cfg *config.Config) *StorageService {
-	return &StorageService{cfg: cfg}
+	return &StorageService{
+		cfg:   cfg,
+		cache: make(map[string]*MemoryCachedObject),
+	}
 }
 
 func (s *StorageService) S3Client(ctx context.Context) (*s3.Client, error) {
@@ -92,15 +114,20 @@ func (s *StorageService) UploadAppLogo(ctx context.Context, originalFilename, co
 		return "", fmt.Errorf("s3 put object: %w", err)
 	}
 
+	// Cache directly in RAM
+	s.mu.Lock()
+	s.cache[filename] = &MemoryCachedObject{
+		Data:        data,
+		ContentType: contentType,
+	}
+	s.mu.Unlock()
+
 	return "/uploads/apps/" + filename, nil
 }
 
 type StorageProxyResult struct {
-	LocalPath     string
-	Body          io.ReadCloser
-	ContentLength *int64
-	ContentType   string
-	IsLocal       bool
+	Data        []byte
+	ContentType string
 }
 
 func (s *StorageService) ResolveUploadObject(ctx context.Context, filename string) (*StorageProxyResult, error) {
@@ -109,18 +136,16 @@ func (s *StorageService) ResolveUploadObject(ctx context.Context, filename strin
 		return nil, domain.ErrNotFound
 	}
 
-	// 1. Check local disk fallback
-	localPaths := []string{
-		filepath.Join("public", "uploads", "apps", cleanName),
-		filepath.Join("uploads", "apps", cleanName),
-		filepath.Join("..", "frontend", "public", "uploads", "apps", cleanName),
-		filepath.Join("..", "uploads", "apps", cleanName),
+	// 1. Check in-memory RAM cache
+	s.mu.RLock()
+	if cached, ok := s.cache[cleanName]; ok && cached != nil {
+		s.mu.RUnlock()
+		return &StorageProxyResult{
+			Data:        cached.Data,
+			ContentType: cached.ContentType,
+		}, nil
 	}
-	for _, lp := range localPaths {
-		if _, err := os.Stat(lp); err == nil {
-			return &StorageProxyResult{LocalPath: lp, IsLocal: true}, nil
-		}
-	}
+	s.mu.RUnlock()
 
 	// 2. Query R2 cloud storage across candidate keys & buckets
 	client, err := s.S3Client(ctx)
@@ -130,11 +155,11 @@ func (s *StorageService) ResolveUploadObject(ctx context.Context, filename strin
 
 	candidateBuckets := []string{
 		s.cfg.R2BucketPusdatin,
+		"data-ptsp",
 		"data-arsip",
+		"data-surat",
 		"data-inklusi",
 		"data-ppid",
-		"data-ptsp",
-		"data-surat",
 	}
 
 	candidateKeys := []string{
@@ -168,6 +193,12 @@ func (s *StorageService) ResolveUploadObject(ctx context.Context, filename strin
 		return nil, domain.ErrNotFound
 	}
 
+	bodyBytes, err := io.ReadAll(out.Body)
+	_ = out.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("read body: %w", err)
+	}
+
 	ct := "application/octet-stream"
 	if out.ContentType != nil && *out.ContentType != "" && *out.ContentType != "application/octet-stream" {
 		ct = *out.ContentType
@@ -187,11 +218,17 @@ func (s *StorageService) ResolveUploadObject(ctx context.Context, filename strin
 		}
 	}
 
+	// Cache directly in RAM for instant subsequent hits
+	s.mu.Lock()
+	s.cache[cleanName] = &MemoryCachedObject{
+		Data:        bodyBytes,
+		ContentType: ct,
+	}
+	s.mu.Unlock()
+
 	return &StorageProxyResult{
-		Body:          out.Body,
-		ContentLength: out.ContentLength,
-		ContentType:   ct,
-		IsLocal:       false,
+		Data:        bodyBytes,
+		ContentType: ct,
 	}, nil
 }
 
@@ -200,7 +237,15 @@ func (s *StorageService) GetR2Buckets(ctx context.Context) ([]map[string]any, er
 		return nil, fmt.Errorf("cloudflare credentials not configured")
 	}
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	// 1. Check in-memory 30-second TTL cache to prevent redundant external API hits
+	s.mu.RLock()
+	if len(s.bucketCache) > 0 && time.Since(s.bucketCacheAt) < 30*time.Second {
+		cached := s.bucketCache
+		s.mu.RUnlock()
+		return cached, nil
+	}
+	s.mu.RUnlock()
+
 	base := "https://api.cloudflare.com/client/v4/accounts/" + s.cfg.CloudflareAccountID + "/r2/buckets"
 
 	authHeaders := map[string]string{
@@ -208,7 +253,7 @@ func (s *StorageService) GetR2Buckets(ctx context.Context) ([]map[string]any, er
 		"Content-Type":  "application/json",
 	}
 
-	listResp, err := httpGetJSON(ctx, client, base, authHeaders)
+	listResp, err := httpGetJSON(ctx, r2APIHTTPClient, base, authHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +282,7 @@ func (s *StorageService) GetR2Buckets(ctx context.Context) ([]map[string]any, er
 			name, _ := bucket["name"].(string)
 			usage := fallbackUsage
 			if name != "" {
-				usageResp, err := httpGetJSON(ctx, client, base+"/"+name+"/usage", authHeaders)
+				usageResp, err := httpGetJSON(ctx, r2APIHTTPClient, base+"/"+name+"/usage", authHeaders)
 				if err == nil {
 					var usageData struct {
 						Success bool           `json:"success"`
@@ -257,6 +302,12 @@ func (s *StorageService) GetR2Buckets(ctx context.Context) ([]map[string]any, er
 		}(i, bucket)
 	}
 	wg.Wait()
+
+	// Update in-memory cache
+	s.mu.Lock()
+	s.bucketCache = out
+	s.bucketCacheAt = time.Now()
+	s.mu.Unlock()
 
 	return out, nil
 }

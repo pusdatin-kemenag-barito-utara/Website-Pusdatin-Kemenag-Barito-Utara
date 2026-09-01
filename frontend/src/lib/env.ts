@@ -9,6 +9,12 @@ export const env = {
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "",
   turnstileSiteKey:
     import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAADR1O_LSp1lgc3km",
+  gaMeasurementId:
+    import.meta.env.PUBLIC_GA_MEASUREMENT_ID || "G-FN3SKRFG3J",
+  gtmId:
+    import.meta.env.PUBLIC_GTM_ID || "GT-TQS7JPXB",
+  cfBeaconToken:
+    import.meta.env.PUBLIC_CF_BEACON_TOKEN || "",
 };
 
 if (!env.supabaseUrl) {

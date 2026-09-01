@@ -37,9 +37,12 @@ func (s *ReportService) ListAuditLogs(ctx context.Context, f domain.AuditFilter)
 	return s.auditRepo.ListAuditLogs(ctx, f)
 }
 
-func (s *ReportService) DeleteAuditLogs(ctx context.Context, targetSchema string) error {
-	_, err := s.auditRepo.DeleteAuditLogs(ctx, targetSchema)
-	return err
+func (s *ReportService) DeleteAuditLogs(ctx context.Context, targetSchema string) (int64, error) {
+	return s.auditRepo.DeleteAuditLogs(ctx, targetSchema)
+}
+
+func (s *ReportService) DeleteAuditLogsBatch(ctx context.Context, ids []string) (int64, error) {
+	return s.auditRepo.DeleteAuditLogsBatch(ctx, ids)
 }
 
 func (s *ReportService) GetActivityReport(ctx context.Context, days int) ([]domain.ActivityPoint, error) {
@@ -61,12 +64,12 @@ func (s *ReportService) GetLandingData(ctx context.Context) (*domain.LandingData
 	stats, err := s.landingRepo.LandingStats(ctx)
 	if err != nil {
 		stats = &domain.LandingStats{
-			TotalAppsCount:    0,
-			LayananMasyarakat: 0,
-			LayananPegawai:    0,
-			TotalAdmin:        0,
-			TotalPegawai:      0,
-			TotalMasyarakat:   0,
+			TotalAppsCount:      0,
+			OnlineAppsCount:     0,
+			TotalAnnouncements:  0,
+			TotalAuditLogs:      0,
+			SuperAdminCount:     1,
+			SystemHealthPercent: 100,
 		}
 	}
 

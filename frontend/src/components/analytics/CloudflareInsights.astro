@@ -1,0 +1,182 @@
+---
+import { env } from "@/lib/env";
+
+const cfBeaconToken = env.cfBeaconToken || "";
+---
+
+<!-- Cloudflare Web Analytics / Browser Insights Official Beacon -->
+{cfBeaconToken ? (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={JSON.stringify({
+      token: cfBeaconToken,
+      spa: true,
+    })}
+  ></script>
+) : null}
+
+<!-- Enterprise Real User Monitoring (RUM) & Core Web Vitals Engine -->
+<script is:inline>
+  (function () {
+    if (typeof window === "undefined") return;
+
+    // Initialize global RUM state accessible via window.__CF_RUM__
+    window.__CF_RUM__ = window.__CF_RUM__ || {
+      version: "3.0-enterprise",
+      provider: "Cloudflare Browser Insights & RUM",
+      metrics: {
+        ttfb: null,
+        fcp: null,
+        lcp: null,
+        cls: 0,
+        inp: null,
+        domInteractive: null,
+        domComplete: null,
+      },
+      page: window.location.pathname,
+      history: [],
+      rating: {},
+    };
+
+    function calculateRating(metric, value) {
+      if (value === null || value === undefined) return "pending";
+      switch (metric) {
+        case "lcp":
+          return value <= 2500 ? "good" : value <= 4000 ? "needs-improvement" : "poor";
+        case "cls":
+          return value <= 0.1 ? "good" : value <= 0.25 ? "needs-improvement" : "poor";
+        case "inp":
+        case "fid":
+          return value <= 200 ? "good" : value <= 500 ? "needs-improvement" : "poor";
+        case "fcp":
+        case "ttfb":
+          return value <= 800 ? "good" : value <= 1800 ? "needs-improvement" : "poor";
+        default:
+          return "info";
+      }
+    }
+
+    function dispatchMetric(name, value) {
+      const key = name.toLowerCase();
+      window.__CF_RUM__.metrics[key] = value;
+      window.__CF_RUM__.rating[key] = calculateRating(key, value);
+
+      // Push to standard analytics dataLayer
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "cf_rum_metric",
+        metric_name: name.toUpperCase(),
+        metric_value: value,
+        metric_rating: window.__CF_RUM__.rating[key],
+        page_path: window.location.pathname,
+      });
+
+      // Developer & Admin visibility in console
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        console.log(
+          `%c[Cloudflare RUM] %c${name.toUpperCase()}: %c${value}${typeof value === 'number' && key !== 'cls' ? 'ms' : ''} (${window.__CF_RUM__.rating[key]})`,
+          "color: #f6821f; font-weight: bold;",
+          "color: #0f172a; font-weight: 600;",
+          "color: #059669; font-weight: bold;"
+        );
+      }
+    }
+
+    function measureNavigationTiming() {
+      try {
+        const navEntries = performance.getEntriesByType("navigation");
+        if (navEntries && navEntries.length > 0) {
+          const nav = navEntries[0];
+          const ttfb = Math.round(nav.responseStart - nav.requestStart);
+          if (ttfb >= 0) dispatchMetric("TTFB", ttfb);
+
+          if (nav.domInteractive) {
+            dispatchMetric("DOMInteractive", Math.round(nav.domInteractive));
+          }
+          if (nav.domComplete) {
+            dispatchMetric("DOMComplete", Math.round(nav.domComplete));
+          }
+        }
+      } catch (e) {
+        // Fallback for older browsers
+      }
+    }
+
+    function measurePaintTiming() {
+      try {
+        const paintEntries = performance.getEntriesByType("paint");
+        for (const entry of paintEntries) {
+          if (entry.name === "first-contentful-paint") {
+            dispatchMetric("FCP", Math.round(entry.startTime));
+          }
+        }
+      } catch (e) {}
+    }
+
+    function observePerformance() {
+      if (!("PerformanceObserver" in window)) return;
+
+      try {
+        // 1. Largest Contentful Paint (LCP)
+        const lcpObserver = new PerformanceObserver((entryList) => {
+          const entries = entryList.getEntries();
+          const lastEntry = entries[entries.length - 1];
+          if (lastEntry) {
+            dispatchMetric("LCP", Math.round(lastEntry.startTime));
+          }
+        });
+        lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
+
+        // 2. Cumulative Layout Shift (CLS)
+        let clsAccumulator = 0;
+        const clsObserver = new PerformanceObserver((entryList) => {
+          for (const entry of entryList.getEntries()) {
+            if (!entry.hadRecentInput) {
+              clsAccumulator += entry.value;
+            }
+          }
+          dispatchMetric("CLS", Number(clsAccumulator.toFixed(4)));
+        });
+        clsObserver.observe({ type: "layout-shift", buffered: true });
+
+        // 3. Interaction to Next Paint / First Input Delay (INP / FID)
+        const inpObserver = new PerformanceObserver((entryList) => {
+          for (const entry of entryList.getEntries()) {
+            const duration = entry.duration || (entry.processingStart ? entry.processingStart - entry.startTime : 0);
+            if (duration > 0) {
+              dispatchMetric("INP", Math.round(duration));
+            }
+          }
+        });
+        inpObserver.observe({ type: "first-input", buffered: true });
+      } catch (e) {}
+    }
+
+    // Initialize on page load
+    if (document.readyState === "complete") {
+      measureNavigationTiming();
+      measurePaintTiming();
+      observePerformance();
+    } else {
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          measureNavigationTiming();
+          measurePaintTiming();
+          observePerformance();
+        }, 0);
+      });
+    }
+
+    // Support Astro View Transitions / SPA Client Navigation
+    document.addEventListener("astro:page-load", () => {
+      window.__CF_RUM__.page = window.location.pathname;
+      window.__CF_RUM__.history.push({
+        path: window.location.pathname,
+        time: Date.now(),
+      });
+      measurePaintTiming();
+    });
+  })();
+</script>

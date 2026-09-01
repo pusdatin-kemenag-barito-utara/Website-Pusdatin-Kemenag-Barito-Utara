@@ -58,7 +58,7 @@ func (s *AuthService) Login(ctx context.Context, email, password, turnstileToken
 		return nil, domain.ErrInvalidInput
 	}
 
-	if s.verifier != nil && !s.verifier.Verify(ctx, s.cfg.TurnstileSecretKey, turnstileToken, s.cfg.IsProduction) {
+	if s.verifier != nil && !s.verifier.Verify(ctx, s.cfg.TurnstileSecretKey, turnstileToken, clientIP, s.cfg.IsProduction) {
 		return nil, domain.ErrSecurityCheckFail
 	}
 
@@ -260,32 +260,15 @@ func (s *AuthService) BuildSessionContext(ctx context.Context, supaUser *domain.
 		isCentralSuperAdmin = true
 	}
 
-	role := "viewer"
 	var profile *domain.User
-	var perms []domain.AppPermission
-
-	if isCentralSuperAdmin {
-		role = "super_admin"
-	} else {
+	if !isCentralSuperAdmin {
 		profile, _ = s.userRepo.GetUserByEmail(ctx, supaUser.Email)
-		if profile != nil {
-			if profile.Status == "inactive" {
-				return fail()
-			}
-			role = profile.Role
-			if role == "" {
-				role = "viewer"
-			}
-			perms, _ = s.userRepo.GetUserPermissions(ctx, profile.ID)
-		} else {
+		if profile == nil || profile.Status == "inactive" || profile.Role != "super_admin" {
 			return fail()
 		}
 	}
-	if perms == nil {
-		perms = []domain.AppPermission{}
-	}
 
-	name := "Admin"
+	name := "Super Admin"
 	if profile != nil && profile.Name != "" {
 		name = profile.Name
 	} else if fn, ok := supaUser.UserMetadata["full_name"].(string); ok && fn != "" {
@@ -299,11 +282,11 @@ func (s *AuthService) BuildSessionContext(ctx context.Context, supaUser *domain.
 			ID:             supaUser.ID,
 			Email:          supaUser.Email,
 			Name:           name,
-			Role:           role,
-			AppPermissions: perms,
+			Role:           "super_admin",
+			AppPermissions: []domain.AppPermission{},
 		},
 		IsAuthenticated: true,
-		IsAdmin:         role == "super_admin" || role == "admin" || role == "sub_admin",
+		IsAdmin:         true,
 	}
 }
 

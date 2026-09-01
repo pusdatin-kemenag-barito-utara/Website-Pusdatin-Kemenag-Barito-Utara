@@ -108,6 +108,11 @@ func (m *mockAuditRepo) DeleteAuditLogs(ctx context.Context, targetSchema string
 	return count, nil
 }
 
+func (m *mockAuditRepo) DeleteAuditLogsBatch(ctx context.Context, ids []string) (int64, error) {
+	count := int64(len(ids))
+	return count, nil
+}
+
 func (m *mockAuditRepo) InsertAuditLog(ctx context.Context, action, target, targetSchema, performedBy string, before, after any, ip string) error {
 	m.logs = append(m.logs, domain.AuditLog{
 		Action:      action,

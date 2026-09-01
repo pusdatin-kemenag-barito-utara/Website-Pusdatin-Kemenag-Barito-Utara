@@ -17,14 +17,24 @@ import (
 )
 
 type SystemService struct {
-	systemRepo domain.SystemRepository
-	netRate    *netRateTracker
+	systemRepo   domain.SystemRepository
+	netRate      *netRateTracker
+	cores        int
+	diskMu       sync.RWMutex
+	cachedTotal  uint64
+	cachedUsed   uint64
+	cachedDiskAt time.Time
 }
 
 func NewSystemService(systemRepo domain.SystemRepository) *SystemService {
+	cores, _ := cpu.Counts(true)
+	// Prime initial CPU sample for non-blocking delta calculation
+	_, _ = cpu.Percent(0, false)
+
 	return &SystemService{
 		systemRepo: systemRepo,
 		netRate:    &netRateTracker{},
+		cores:      cores,
 	}
 }
 
@@ -71,16 +81,49 @@ func (n *netRateTracker) sample() (rx, tx float64) {
 	return rx, tx
 }
 
-func (s *SystemService) CollectRealtime(ctx context.Context) (*domain.RealtimeMetrics, error) {
-	cpuPct, err := cpu.PercentWithContext(ctx, 100*time.Millisecond, false)
-	if err != nil || len(cpuPct) == 0 {
-		cpuPct, _ = cpu.PercentWithContext(ctx, 0, false)
+func (s *SystemService) getDiskUsage(ctx context.Context) (uint64, uint64) {
+	s.diskMu.RLock()
+	if s.cachedTotal > 0 && time.Since(s.cachedDiskAt) < 30*time.Second {
+		tot, used := s.cachedTotal, s.cachedUsed
+		s.diskMu.RUnlock()
+		return tot, used
 	}
+	s.diskMu.RUnlock()
+
+	var totalDisk, usedDisk uint64
+	if u, err := disk.UsageWithContext(ctx, "/"); err == nil && u.Total > 0 {
+		totalDisk = u.Total
+		usedDisk = u.Used
+	} else if parts, err := disk.PartitionsWithContext(ctx, false); err == nil {
+		for _, p := range parts {
+			if u, err := disk.UsageWithContext(ctx, p.Mountpoint); err == nil && u.Total > 0 {
+				totalDisk += u.Total
+				usedDisk += u.Used
+			}
+		}
+	}
+
+	s.diskMu.Lock()
+	s.cachedTotal = totalDisk
+	s.cachedUsed = usedDisk
+	s.cachedDiskAt = time.Now()
+	s.diskMu.Unlock()
+
+	return totalDisk, usedDisk
+}
+
+func (s *SystemService) CollectRealtime(ctx context.Context) (*domain.RealtimeMetrics, error) {
+	// Non-blocking CPU delta calculation (instant 0ms)
+	cpuPct, err := cpu.PercentWithContext(ctx, 0, false)
 	cpuLoad := 0.0
-	if len(cpuPct) > 0 {
+	if err == nil && len(cpuPct) > 0 {
 		cpuLoad = cpuPct[0]
 	}
-	cores, _ := cpu.CountsWithContext(ctx, true)
+
+	cores := s.cores
+	if cores == 0 {
+		cores, _ = cpu.CountsWithContext(ctx, true)
+	}
 
 	avgLoad := 0.0
 	if l, err := load.AvgWithContext(ctx); err == nil && l != nil {
@@ -92,19 +135,7 @@ func (s *SystemService) CollectRealtime(ctx context.Context) (*domain.RealtimeMe
 		return nil, err
 	}
 
-	var totalDisk, usedDisk uint64
-	if u, err := disk.UsageWithContext(ctx, "/"); err == nil && u.Total > 0 {
-		totalDisk = u.Total
-		usedDisk = u.Used
-	} else if parts, err := disk.PartitionsWithContext(ctx, false); err == nil {
-		for _, p := range parts {
-			if u, err := disk.UsageWithContext(ctx, p.Mountpoint); err == nil {
-				totalDisk += u.Total
-				usedDisk += u.Used
-			}
-		}
-	}
-
+	totalDisk, usedDisk := s.getDiskUsage(ctx)
 	rxSec, txSec := s.netRate.sample()
 	uptime, _ := host.UptimeWithContext(ctx)
 

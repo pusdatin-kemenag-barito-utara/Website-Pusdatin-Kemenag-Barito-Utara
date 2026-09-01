@@ -1,0 +1,56 @@
+---
+import { env } from "@/lib/env";
+
+const gaId = env.gaMeasurementId || "G-FN3SKRFG3J";
+const gtmId = env.gtmId || "GT-TQS7JPXB";
+---
+
+<!-- Google Tag (gtag.js) Official Loader -->
+<script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+
+<!-- Google Tag & DataLayer Initialization -->
+<script is:inline define:vars={{ gaId, gtmId }}>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    window.dataLayer.push(arguments);
+  }
+  window.gtag = gtag;
+  gtag("js", new Date());
+
+  // Default consent mode
+  gtag("consent", "default", {
+    analytics_storage: "granted",
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+  });
+
+  // Configure GA4 Measurement Stream
+  gtag("config", gaId, {
+    send_page_view: false, // Controlled explicitly via Astro Page Transition listener
+    cookie_flags: "SameSite=None;Secure",
+  });
+
+  // Configure Google Tag Manager / Secondary Tag
+  if (gtmId && gtmId !== gaId) {
+    gtag("config", gtmId);
+  }
+</script>
+
+<!-- Astro View Transition SPA Page View Tracker -->
+<script>
+  import { trackPageView } from "@/lib/analytics";
+
+  function sendPageTrack() {
+    trackPageView(window.location.pathname + window.location.search, document.title);
+  }
+
+  // Support both standard DOMContentLoaded and Astro View Transitions
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    sendPageTrack();
+  } else {
+    document.addEventListener("DOMContentLoaded", sendPageTrack);
+  }
+
+  document.addEventListener("astro:page-load", sendPageTrack);
+</script>

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/domain"
 	"pusdatin/backend/internal/services"
@@ -17,7 +17,7 @@ func NewAppHandler(appService *services.AppService) *AppHandler {
 }
 
 // ListApps GET /api/apps
-func (h *AppHandler) ListApps(c *fiber.Ctx) error {
+func (h *AppHandler) ListApps(c fiber.Ctx) error {
 	apps, err := h.appService.ListApps(c.Context())
 	if err != nil {
 		return utils.Internal(c, "Internal server error")
@@ -26,7 +26,7 @@ func (h *AppHandler) ListApps(c *fiber.Ctx) error {
 }
 
 // CreateApp POST /api/apps
-func (h *AppHandler) CreateApp(c *fiber.Ctx) error {
+func (h *AppHandler) CreateApp(c fiber.Ctx) error {
 	var req services.CreateAppInput
 	if err := body(c, &req); err != nil {
 		return err
@@ -49,7 +49,7 @@ func (h *AppHandler) CreateApp(c *fiber.Ctx) error {
 }
 
 // UpdateApp PATCH /api/apps/:id
-func (h *AppHandler) UpdateApp(c *fiber.Ctx) error {
+func (h *AppHandler) UpdateApp(c fiber.Ctx) error {
 	id := c.Params("id")
 	var req struct {
 		Name      *string `json:"name"`
@@ -100,7 +100,7 @@ func (h *AppHandler) UpdateApp(c *fiber.Ctx) error {
 }
 
 // DeleteApp DELETE /api/apps/:id
-func (h *AppHandler) DeleteApp(c *fiber.Ctx) error {
+func (h *AppHandler) DeleteApp(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
 		return utils.Bad(c, "ID aplikasi tidak valid")
@@ -116,7 +116,7 @@ func (h *AppHandler) DeleteApp(c *fiber.Ctx) error {
 }
 
 // UpdateAppStatus PUT /api/apps/:id/status
-func (h *AppHandler) UpdateAppStatus(c *fiber.Ctx) error {
+func (h *AppHandler) UpdateAppStatus(c fiber.Ctx) error {
 	id := c.Params("id")
 	var req struct {
 		Status string `json:"status"`
@@ -141,7 +141,7 @@ func (h *AppHandler) UpdateAppStatus(c *fiber.Ctx) error {
 }
 
 // BulkUpdateAppStatus POST /api/apps/bulk-status
-func (h *AppHandler) BulkUpdateAppStatus(c *fiber.Ctx) error {
+func (h *AppHandler) BulkUpdateAppStatus(c fiber.Ctx) error {
 	var req struct {
 		Status string `json:"status"`
 	}
@@ -162,7 +162,7 @@ func (h *AppHandler) BulkUpdateAppStatus(c *fiber.Ctx) error {
 }
 
 // PublicAppStatus GET /api/public/apps/:id/status (Public / CORS)
-func (h *AppHandler) PublicAppStatus(c *fiber.Ctx) error {
+func (h *AppHandler) PublicAppStatus(c fiber.Ctx) error {
 	c.Set("Access-Control-Allow-Origin", "*")
 	c.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	c.Set("Access-Control-Allow-Headers", "Content-Type")

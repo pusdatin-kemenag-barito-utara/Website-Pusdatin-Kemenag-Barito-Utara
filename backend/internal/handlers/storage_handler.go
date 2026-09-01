@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/services"
 	"pusdatin/backend/internal/utils"
@@ -19,7 +19,7 @@ func NewStorageHandler(storageService *services.StorageService) *StorageHandler 
 }
 
 // UploadFile handles POST /api/upload (admin)
-func (h *StorageHandler) UploadFile(c *fiber.Ctx) error {
+func (h *StorageHandler) UploadFile(c fiber.Ctx) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No file uploaded"})
@@ -49,8 +49,8 @@ func (h *StorageHandler) UploadFile(c *fiber.Ctx) error {
 	})
 }
 
-// UploadsProxy streams an object from R2 at GET /uploads/apps/:file with local disk fallback.
-func (h *StorageHandler) UploadsProxy(c *fiber.Ctx) error {
+// UploadsProxy streams an object from R2 with in-memory RAM caching.
+func (h *StorageHandler) UploadsProxy(c fiber.Ctx) error {
 	filename := c.Params("file")
 	if filename == "" {
 		filename = c.Params("*")
@@ -61,26 +61,15 @@ func (h *StorageHandler) UploadsProxy(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNotFound)
 	}
 
-	if result.IsLocal {
-		return c.SendFile(result.LocalPath)
-	}
-
-	defer result.Body.Close()
-
-	if result.ContentLength != nil {
-		c.Set("Content-Length", fmt.Sprintf("%d", *result.ContentLength))
-	}
 	c.Set("Content-Type", result.ContentType)
+	c.Set("Content-Length", fmt.Sprintf("%d", len(result.Data)))
 	c.Set("Cache-Control", "public, max-age=31536000, immutable")
 
-	if _, err := io.Copy(c, result.Body); err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
-	return nil
+	return c.Send(result.Data)
 }
 
 // R2Buckets mirrors /api/r2/buckets (Cloudflare REST API).
-func (h *StorageHandler) R2Buckets(c *fiber.Ctx) error {
+func (h *StorageHandler) R2Buckets(c fiber.Ctx) error {
 	buckets, err := h.storageService.GetR2Buckets(c.Context())
 	if err != nil {
 		return utils.Internal(c, "Failed to fetch R2 data")

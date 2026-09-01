@@ -26,11 +26,12 @@ function formatBytes(bytes: number, decimals = 2) {
 
 function formatUptime(seconds: number) {
   if (!seconds) return 'N/A';
-  const d = Math.floor(seconds / (3600*24));
-  const h = Math.floor(seconds % (3600*24) / 3600);
-  const m = Math.floor(seconds % 3600 / 60);
-  if (d > 0) return `${d}h ${h}j ${m}m`;
-  return `${h}j ${m}m`;
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d} hari ${h} jam ${m} mnt`;
+  if (h > 0) return `${h} jam ${m} mnt`;
+  return `${m} mnt`;
 }
 
 interface MetricHistoryPoint {

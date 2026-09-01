@@ -48,18 +48,6 @@ type App struct {
 	CreatedAt         string  `json:"createdAt"`
 }
 
-// Pejabat represents an official assigned to a role.
-type Pejabat struct {
-	ID          string  `json:"id"`
-	Nama        string  `json:"nama"`
-	Email       string  `json:"email"`
-	NIP         *string `json:"nip"`
-	Jabatan     *string `json:"jabatan"`
-	UnitKerja   *string `json:"unitKerja"`
-	TipePejabat *string `json:"tipePejabat"`
-	OrderIndex  int     `json:"orderIndex"`
-}
-
 // AuditLog represents an audit trail event.
 type AuditLog struct {
 	ID           string         `json:"id"`
@@ -99,22 +87,22 @@ type AppSummaryItem struct {
 
 // DashboardStats holds counts and totals for dashboard widgets.
 type DashboardStats struct {
-	TotalUsers  int64 `json:"totalUsers"`
-	ActiveUsers int64 `json:"activeUsers"`
-	TotalApps   int64 `json:"totalApps"`
-	OnlineApps  int64 `json:"onlineApps"`
-	TotalLogs   int64 `json:"totalLogs"`
-	TodayLogs   int64 `json:"todayLogs"`
+	TotalApps          int64 `json:"totalApps"`
+	OnlineApps         int64 `json:"onlineApps"`
+	TotalAnnouncements int64 `json:"totalAnnouncements"`
+	TotalLogs          int64 `json:"totalLogs"`
+	TodayLogs          int64 `json:"todayLogs"`
+	SuperAdminCount    int64 `json:"superAdminCount"`
 }
 
 // LandingStats holds counter statistics displayed on the public landing page.
 type LandingStats struct {
-	TotalAppsCount    int64 `json:"totalAppsCount"`
-	LayananMasyarakat int64 `json:"layananMasyarakat"`
-	LayananPegawai    int64 `json:"layananPegawai"`
-	TotalAdmin        int64 `json:"totalAdmin"`
-	TotalPegawai      int64 `json:"totalPegawai"`
-	TotalMasyarakat   int64 `json:"totalMasyarakat"`
+	TotalAppsCount      int64 `json:"totalAppsCount"`
+	OnlineAppsCount     int64 `json:"onlineAppsCount"`
+	TotalAnnouncements  int64 `json:"totalAnnouncements"`
+	TotalAuditLogs      int64 `json:"totalAuditLogs"`
+	SuperAdminCount     int64 `json:"superAdminCount"`
+	SystemHealthPercent int64 `json:"systemHealthPercent"`
 }
 
 // LandingData represents aggregated landing page data.

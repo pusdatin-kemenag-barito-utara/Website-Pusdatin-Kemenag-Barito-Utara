@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type rateEntry struct {
@@ -69,7 +69,7 @@ func (rl *RateLimiter) allow(key string, limit, windowMs int) bool {
 
 // RateLimit returns a Fiber middleware rate limiting requests by prefix and client IP.
 func RateLimit(prefix string, limit, windowMs int) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		ip := ClientIP(c)
 		if !defaultRateLimiter.allow(prefix+":"+ip, limit, windowMs) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
@@ -81,7 +81,7 @@ func RateLimit(prefix string, limit, windowMs int) fiber.Handler {
 }
 
 // ClientIP extracts the real client IP using standard forward headers.
-func ClientIP(c *fiber.Ctx) string {
+func ClientIP(c fiber.Ctx) string {
 	if xff := c.Get("X-Forwarded-For"); xff != "" {
 		for _, part := range strings.Split(xff, ",") {
 			if part = strings.TrimSpace(part); part != "" {

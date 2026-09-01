@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
+import { trackAuthEvent } from "@/lib/analytics";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { sidebarOpen, setSidebarOpen } = useUIStore();
@@ -28,11 +29,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         } else {
           clearAuth();
           localStorage.removeItem("pusdatin_token");
+          await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
           window.location.assign("/login");
         }
       } catch {
         clearAuth();
         localStorage.removeItem("pusdatin_token");
+        await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
         window.location.assign("/login");
       } finally {
         setLoading(false);
@@ -44,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     try {
+      trackAuthEvent("logout");
       localStorage.removeItem("pusdatin_token");
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     } finally {

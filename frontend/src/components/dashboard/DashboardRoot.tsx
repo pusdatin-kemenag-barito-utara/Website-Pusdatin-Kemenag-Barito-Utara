@@ -55,12 +55,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 import { AppsPage } from "@/components/dashboard/pages/apps";
 import { AuditPage } from "@/components/dashboard/pages/audit";
 import { InfrastructurePage } from "@/components/dashboard/pages/infrastructure";
-import { PejabatPage } from "@/components/dashboard/pages/pejabat";
 import { ReportsPage } from "@/components/dashboard/pages/reports";
-import { UsersPage } from "@/components/dashboard/pages/users";
-import { NewUserPage } from "@/components/dashboard/pages/users-new";
-import { UserDetailPage } from "@/components/dashboard/pages/users-detail";
 import { AnnouncementsPage } from "@/components/dashboard/pages/announcements";
+import { BackupPage } from "@/components/dashboard/pages/backup";
 
 function DashboardRoutes() {
   return (
@@ -76,13 +73,10 @@ function DashboardRoutes() {
         <Route path="/dashboard" element={<Navigate to="/dashboard/apps" replace />} />
         <Route path="/dashboard/apps" element={<AppsPage />} />
         <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
-        <Route path="/dashboard/pejabat" element={<PejabatPage />} />
         <Route path="/dashboard/infrastructure" element={<InfrastructurePage />} />
+        <Route path="/dashboard/backup" element={<BackupPage />} />
         <Route path="/dashboard/reports" element={<ReportsPage />} />
         <Route path="/dashboard/audit" element={<AuditPage />} />
-        <Route path="/dashboard/users" element={<UsersPage />} />
-        <Route path="/dashboard/users/new" element={<NewUserPage />} />
-        <Route path="/dashboard/users/:id" element={<UserDetailPage />} />
         <Route path="*" element={<Navigate to="/dashboard/apps" replace />} />
       </Routes>
     </Suspense>

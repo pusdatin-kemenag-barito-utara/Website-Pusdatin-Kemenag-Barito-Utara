@@ -5,22 +5,22 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 interface LandingHeroContentProps {
   stats: {
     totalAppsCount: number;
-    layananMasyarakat: number;
-    layananPegawai: number;
-    totalAdmin: number;
-    totalPegawai: number;
-    totalMasyarakat: number;
+    onlineAppsCount?: number;
+    totalAnnouncements?: number;
+    totalAuditLogs?: number;
+    superAdminCount?: number;
+    systemHealthPercent?: number;
   };
 }
 
 export function LandingHeroContent({ stats }: LandingHeroContentProps) {
   const safeStats = stats || {
     totalAppsCount: 0,
-    layananMasyarakat: 0,
-    layananPegawai: 0,
-    totalAdmin: 0,
-    totalPegawai: 0,
-    totalMasyarakat: 0,
+    onlineAppsCount: 0,
+    totalAnnouncements: 0,
+    totalAuditLogs: 0,
+    superAdminCount: 1,
+    systemHealthPercent: 100,
   };
 
   const containerVariants = {
@@ -60,6 +60,7 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
           variants={itemVariants}
           src="/branding/pusdatin.png"
           alt="Logo PUSDATIN"
+          fetchPriority="high"
           className="h-20 w-auto sm:h-24 mb-4 drop-shadow-2xl object-contain"
         />
 
@@ -84,7 +85,7 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
           variants={itemVariants}
           className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed mb-6"
         >
-          Sistem manajemen data master dan autentikasi terpusat untuk seluruh aplikasi layanan Kemenag Barito Utara.
+          Pusat monitoring, integrasi aplikasi layanan publik dan internal, serta pengumuman resmi Kementerian Agama Kabupaten Barito Utara.
         </motion.p>
 
         {/* Buttons */}
@@ -110,12 +111,12 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
         <div className="rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800/80 p-4 sm:p-6 shadow-2xl shadow-slate-950/80">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 text-center">
             {[
-              { label: "Sistem Integrasi", value: safeStats.totalAppsCount },
-              { label: "Layanan Masyarakat", value: safeStats.layananMasyarakat },
-              { label: "Layanan Pegawai", value: safeStats.layananPegawai },
-              { label: "Administrator", value: safeStats.totalAdmin },
-              { label: "Pegawai Terdaftar", value: safeStats.totalPegawai },
-              { label: "Masyarakat", value: safeStats.totalMasyarakat },
+              { label: "Sistem Terintegrasi", value: safeStats.totalAppsCount },
+              { label: "Aplikasi Online", value: safeStats.onlineAppsCount || safeStats.totalAppsCount },
+              { label: "Pengumuman Resmi", value: safeStats.totalAnnouncements || 0 },
+              { label: "Audit Aktivitas", value: safeStats.totalAuditLogs || 0 },
+              { label: "Super Admin", value: safeStats.superAdminCount || 1 },
+              { label: "Keandalan Sistem (%)", value: safeStats.systemHealthPercent || 100 },
             ].map((item, i) => (
               <div
                 key={i}

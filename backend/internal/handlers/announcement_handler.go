@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/domain"
 	"pusdatin/backend/internal/services"
@@ -17,7 +17,7 @@ func NewAnnouncementHandler(service *services.AnnouncementService) *Announcement
 }
 
 // ListPublic GET /api/announcements/public
-func (h *AnnouncementHandler) ListPublic(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) ListPublic(c fiber.Ctx) error {
 	list, err := h.service.ListPublicAnnouncements(c.Context())
 	if err != nil {
 		return utils.Internal(c, "Gagal memuat daftar pengumuman publik")
@@ -26,7 +26,7 @@ func (h *AnnouncementHandler) ListPublic(c *fiber.Ctx) error {
 }
 
 // ListAnnouncements GET /api/announcements
-func (h *AnnouncementHandler) ListAnnouncements(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) ListAnnouncements(c fiber.Ctx) error {
 	search := c.Query("search")
 	list, err := h.service.ListAnnouncements(c.Context(), search)
 	if err != nil {
@@ -36,7 +36,7 @@ func (h *AnnouncementHandler) ListAnnouncements(c *fiber.Ctx) error {
 }
 
 // GetAnnouncement GET /api/announcements/:id
-func (h *AnnouncementHandler) GetAnnouncement(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) GetAnnouncement(c fiber.Ctx) error {
 	id := c.Params("id")
 	item, err := h.service.GetAnnouncement(c.Context(), id)
 	if err != nil {
@@ -49,7 +49,7 @@ func (h *AnnouncementHandler) GetAnnouncement(c *fiber.Ctx) error {
 }
 
 // CreateAnnouncement POST /api/announcements
-func (h *AnnouncementHandler) CreateAnnouncement(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) CreateAnnouncement(c fiber.Ctx) error {
 	var req services.CreateAnnouncementInput
 	if err := body(c, &req); err != nil {
 		return err
@@ -72,7 +72,7 @@ func (h *AnnouncementHandler) CreateAnnouncement(c *fiber.Ctx) error {
 }
 
 // UpdateAnnouncement PUT /api/announcements/:id
-func (h *AnnouncementHandler) UpdateAnnouncement(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) UpdateAnnouncement(c fiber.Ctx) error {
 	id := c.Params("id")
 	var req services.UpdateAnnouncementInput
 	if err := body(c, &req); err != nil {
@@ -93,7 +93,7 @@ func (h *AnnouncementHandler) UpdateAnnouncement(c *fiber.Ctx) error {
 }
 
 // DeleteAnnouncement DELETE /api/announcements/:id
-func (h *AnnouncementHandler) DeleteAnnouncement(c *fiber.Ctx) error {
+func (h *AnnouncementHandler) DeleteAnnouncement(c fiber.Ctx) error {
 	id := c.Params("id")
 	actor := actorEmail(c)
 	ip := clientIP(c)

@@ -112,6 +112,17 @@ func (s *Store) DeleteAuditLogs(ctx context.Context, targetSchema string) (int64
 	return tag.RowsAffected(), nil
 }
 
+func (s *Store) DeleteAuditLogsBatch(ctx context.Context, ids []string) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	tag, err := s.pool.Exec(ctx, `DELETE FROM kemenag_pusdatin.audit_logs WHERE id::text = ANY($1)`, ids)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}
+
 // InsertAuditLog records an entry and auto-prunes logs older than 30 days.
 func (s *Store) InsertAuditLog(ctx context.Context, action, target, targetSchema, performedBy string, before, after any, ip string) error {
 	var beforeRaw, afterRaw []byte

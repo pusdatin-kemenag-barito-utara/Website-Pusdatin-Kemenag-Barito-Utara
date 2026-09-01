@@ -32,6 +32,7 @@ type Config struct {
 	R2SecretAccessKey string
 	R2EndpointURL     string
 	R2BucketPusdatin  string
+	R2BucketBackup    string
 
 	RedisURL string
 
@@ -71,6 +72,7 @@ func Load() (*Config, error) {
 		R2SecretAccessKey:      os.Getenv("R2_SECRET_ACCESS_KEY"),
 		R2EndpointURL:          os.Getenv("R2_ENDPOINT_URL"),
 		R2BucketPusdatin:       getEnv("R2_BUCKET_PUSDATIN", "data-pusdatin"),
+		R2BucketBackup:         getEnv("R2_BUCKET_BACKUP", "database-back-up-daily"),
 		RedisURL:               os.Getenv("REDIS_URL"),
 		SiteURL:                getEnv("PUBLIC_SITE_URL", getEnv("SITE_URL", "https://pusdatin.kemenag-baritoutara.com")),
 		IsProduction:           env == "production" || env == "prod",

@@ -1,5 +1,6 @@
 import { motion, Variants } from "framer-motion";
 import { Calendar, ArrowUpRight, CheckCircle2, Building2, MessageSquare, Megaphone } from "lucide-react";
+import { trackAnnouncementClick, trackOutboundLink } from "@/lib/analytics";
 import type { Announcement } from "@/types";
 
 interface PengumumanClientContentProps {
@@ -132,13 +133,18 @@ export function PengumumanClientContent({ announcements }: PengumumanClientConte
                     </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors mb-2">
-                    {item.title}
-                  </h3>
+                  <div
+                    onClick={() => trackAnnouncementClick({ id: item.id, title: item.title, tag: item.tag })}
+                    className="cursor-pointer"
+                  >
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors mb-2">
+                      {item.title}
+                    </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
-                    {contentText}
-                  </p>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                      {contentText}
+                    </p>
+                  </div>
                 </motion.div>
               );
             })}
@@ -173,6 +179,7 @@ export function PengumumanClientContent({ announcements }: PengumumanClientConte
             href="https://wa.me/6285117491212"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackOutboundLink("https://wa.me/6285117491212", "WhatsApp IT Helpdesk")}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#006838] hover:bg-[#005530] text-white text-xs font-semibold shrink-0 transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]"
           >
             Konsultasi WhatsApp IT

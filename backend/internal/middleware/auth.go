@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/auth"
 	"pusdatin/backend/internal/domain"
@@ -13,7 +13,7 @@ const sessionCtxKey = "session"
 
 // AuthMiddleware resolves the current session from request cookies and populates fiber.Locals.
 func AuthMiddleware(authService *services.AuthService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		token := auth.ExtractAccessToken(c)
 		session := authService.ResolveSession(c.Context(), token)
 		c.Locals(sessionCtxKey, session)
@@ -22,7 +22,7 @@ func AuthMiddleware(authService *services.AuthService) fiber.Handler {
 }
 
 // GetSession extracts the resolved domain.SessionContext from fiber.Locals.
-func GetSession(c *fiber.Ctx) *domain.SessionContext {
+func GetSession(c fiber.Ctx) *domain.SessionContext {
 	if s, ok := c.Locals(sessionCtxKey).(*domain.SessionContext); ok && s != nil {
 		return s
 	}
@@ -31,7 +31,7 @@ func GetSession(c *fiber.Ctx) *domain.SessionContext {
 
 // AdminRequired enforces that the requesting session has an admin role.
 func AdminRequired() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		session := GetSession(c)
 		if !session.IsAdmin {
 			return utils.Unauthorized(c, "Unauthorized")
@@ -42,7 +42,7 @@ func AdminRequired() fiber.Handler {
 
 // SuperAdminRequired enforces that the requesting session has the super_admin role.
 func SuperAdminRequired() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		session := GetSession(c)
 		if session.User == nil || session.User.Role != "super_admin" {
 			return utils.Forbidden(c, "Forbidden: memerlukan akses Super Admin")

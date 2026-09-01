@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/config"
 	"pusdatin/backend/internal/database"
@@ -43,32 +43,15 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 		isCentralSuperAdmin = true
 	}
 
-	role := "viewer"
 	var profile *database.User
-	var perms []domain.AppPermission
-
-	if isCentralSuperAdmin {
-		role = "super_admin"
-	} else {
+	if !isCentralSuperAdmin {
 		profile, _ = store.GetUserByEmail(ctx, supaUser.Email)
-		if profile != nil {
-			if profile.Status == "inactive" {
-				return fail()
-			}
-			role = profile.Role
-			if role == "" {
-				role = "viewer"
-			}
-			perms, _ = store.GetUserPermissions(ctx, profile.ID)
-		} else {
+		if profile == nil || profile.Status == "inactive" || profile.Role != "super_admin" {
 			return fail()
 		}
 	}
-	if perms == nil {
-		perms = []domain.AppPermission{}
-	}
 
-	name := "Admin"
+	name := "Super Admin"
 	if profile != nil && profile.Name != "" {
 		name = profile.Name
 	} else if fn, ok := supaUser.UserMetadata["full_name"].(string); ok && fn != "" {
@@ -82,16 +65,16 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 			ID:             supaUser.ID,
 			Email:          supaUser.Email,
 			Name:           name,
-			Role:           role,
-			AppPermissions: perms,
+			Role:           "super_admin",
+			AppPermissions: []domain.AppPermission{},
 		},
 		IsAuthenticated: true,
-		IsAdmin:         role == "super_admin" || role == "admin" || role == "sub_admin",
+		IsAdmin:         true,
 	}
 }
 
 // ResolveSession rebuilds the session context from the Supabase cookies.
-func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Store, sc *Client, c *fiber.Ctx) *domain.SessionContext {
+func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Store, sc *Client, c fiber.Ctx) *domain.SessionContext {
 	accessToken := ExtractAccessToken(c)
 	if accessToken == "" {
 		return &domain.SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
@@ -106,7 +89,7 @@ func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Sto
 
 // ExtractAccessToken reconstructs the access token from the chunked
 // sb-pusdatin-auth-token cookies (same logic as frontend/src/proxy.ts).
-func ExtractAccessToken(c *fiber.Ctx) string {
+func ExtractAccessToken(c fiber.Ctx) string {
 	// 1. Check Authorization header first (Bearer <token>)
 	authHeader := c.Get("Authorization")
 	if authHeader != "" {
@@ -193,7 +176,7 @@ func accessTokenFromValue(combined string) string {
 // the @supabase/ssr format: name.{i} with URI-encoded base64url("base64-" + json).
 const maxChunkSize = 3180
 
-func WriteSessionCookies(c *fiber.Ctx, sessionJSON []byte, secure bool) error {
+func WriteSessionCookies(c fiber.Ctx, sessionJSON []byte, secure bool) error {
 	slim := slimSession(sessionJSON)
 	encoded := "base64-" + base64.RawURLEncoding.EncodeToString(slim)
 	uriEncoded := url.QueryEscape(encoded)
@@ -264,7 +247,7 @@ func slimSession(raw []byte) []byte {
 	return out
 }
 
-func ClearSessionCookies(c *fiber.Ctx) {
+func ClearSessionCookies(c fiber.Ctx) {
 	for i := 0; i < 10; i++ {
 		name := fmt.Sprintf("%s.%d", sessionCookiePrefix, i)
 		c.Cookie(&fiber.Cookie{

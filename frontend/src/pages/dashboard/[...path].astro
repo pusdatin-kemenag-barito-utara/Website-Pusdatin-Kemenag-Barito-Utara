@@ -8,6 +8,6 @@ const canonical = "/dashboard";
 const noIndex = true;
 ---
 
-<BaseLayout {title} {description} {canonical} {noIndex}>
+<BaseLayout {title} {description} {canonical} {noIndex} noTransitions={true}>
   <DashboardRoot client:only="react" />
 </BaseLayout>

@@ -39,10 +39,27 @@ export function useDeleteAuditLogs() {
       if (targetSchema) {
         params.targetSchema = targetSchema;
       }
-      return api.delete("/audit-logs", { params });
+      return api.delete("/audit-logs", undefined, { params });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["landing-stats"] });
+    },
+  });
+}
+
+export function useDeleteAuditLogsBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      return api.delete("/audit-logs", { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["landing-stats"] });
     },
   });
 }

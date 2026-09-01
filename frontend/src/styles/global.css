@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
 
   --color-primary-50: #ecfdf5;
   --color-primary-100: #d1fae5;
@@ -75,4 +75,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { animation: none !important; transition: none !important; }
+}
+
+:root,
+html,
+body,
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
 }

@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { env } from "@/lib/env";
+import { trackAuthEvent } from "@/lib/analytics";
 
 export type MFAState = "none" | "enroll" | "verify";
 
@@ -44,7 +45,7 @@ export function useAdminLogin() {
   const [error, setError] = useState("");
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.SyntheticEvent<HTMLFormElement>) => {
       e.preventDefault();
       setError("");
 
@@ -60,6 +61,7 @@ export function useAdminLogin() {
         const returnTo = urlParams.get("returnTo");
 
         console.log("[AUTH LOG] Attempting login for:", email);
+        trackAuthEvent("login_attempt", { email });
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -69,6 +71,7 @@ export function useAdminLogin() {
         const data = await safeJson(res);
         if (!res.ok) {
           console.error("[AUTH LOG ERROR] Login failed:", res.status, data);
+          trackAuthEvent("login_failure", { error: data.message || "Invalid credentials" });
           throw new Error(data.message || "Email atau password salah");
         }
 
@@ -207,7 +210,7 @@ export function useAdminLogin() {
   );
 
   const handleVerifyOTP = useCallback(
-    async (e?: React.FormEvent) => {
+    async (e?: React.SyntheticEvent<HTMLFormElement>) => {
       if (e) e.preventDefault();
       if (!verifyCode || verifyCode.length !== 6) {
         setError("Kode OTP harus 6 angka");
@@ -317,6 +320,8 @@ export function useAdminLogin() {
         if (typeof window !== "undefined") {
           localStorage.setItem("pusdatin_token", aal2Token);
         }
+
+        trackAuthEvent("login_success", { mfa_verified: true });
 
         if (data.ssoLink) {
           window.location.href = data.ssoLink;

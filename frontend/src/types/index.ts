@@ -2,28 +2,12 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "super_admin" | "admin" | "sub_admin" | "pegawai" | "user" | "pemohon";
-  userType: "internal_admin" | "internal_pegawai" | "eksternal_masyarakat";
+  role: "super_admin";
+  userType?: string;
   status: "active" | "inactive";
   avatar?: string;
-  nip?: string;
-  jabatan?: string;
-  pangkatGolongan?: string | null;
-  unitKerja?: string;
-  noHp?: string | null;
-  alamat?: string | null;
-  nik?: string | null;
-  pekerjaan?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  appPermissions: AppPermission[];
-}
-
-export interface AppPermission {
-  appId: string;
-  appName: string;
-  role: "operator" | "viewer" | "none";
-  features?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SateliteApp {
@@ -65,12 +49,12 @@ export interface SystemHealth {
 }
 
 export interface DashboardStats {
-  totalUsers: number;
-  activeUsers: number;
   totalApps: number;
   onlineApps: number;
+  totalAnnouncements: number;
   totalLogs: number;
   todayLogs: number;
+  superAdminCount: number;
 }
 
 export interface ReportData {

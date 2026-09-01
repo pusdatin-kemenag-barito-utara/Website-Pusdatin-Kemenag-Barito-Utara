@@ -77,7 +77,7 @@ export function AppForm({ onSubmit, onCancel, loading }: AppFormProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const finalIcon = formData.icon ? `${formData.icon.split('?')[0]}?scale=${formData.iconScale}` : "";
     

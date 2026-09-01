@@ -92,17 +92,14 @@ func (s *Store) DashboardStats(ctx context.Context) (*DashboardStats, error) {
 	st := &DashboardStats{}
 	var err error
 
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.profiles`).Scan(&st.TotalUsers); err != nil {
-		return nil, fmt.Errorf("total users: %w", err)
-	}
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.profiles WHERE status = 'active'`).Scan(&st.ActiveUsers); err != nil {
-		return nil, fmt.Errorf("active users: %w", err)
-	}
 	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.satellite_apps`).Scan(&st.TotalApps); err != nil {
 		return nil, fmt.Errorf("total apps: %w", err)
 	}
 	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.satellite_apps WHERE status = 'online'`).Scan(&st.OnlineApps); err != nil {
 		return nil, fmt.Errorf("online apps: %w", err)
+	}
+	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.announcements WHERE is_active = true`).Scan(&st.TotalAnnouncements); err != nil {
+		return nil, fmt.Errorf("total announcements: %w", err)
 	}
 	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.audit_logs`).Scan(&st.TotalLogs); err != nil {
 		return nil, fmt.Errorf("total logs: %w", err)
@@ -110,6 +107,7 @@ func (s *Store) DashboardStats(ctx context.Context) (*DashboardStats, error) {
 	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.audit_logs WHERE timestamp >= CURRENT_DATE`).Scan(&st.TodayLogs); err != nil {
 		return nil, fmt.Errorf("today logs: %w", err)
 	}
+	st.SuperAdminCount = 1
 	return st, nil
 }
 

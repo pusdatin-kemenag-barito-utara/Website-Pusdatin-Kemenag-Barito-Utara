@@ -69,7 +69,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   let hasSupabaseSession = false;
-  let hasAal2 = false;
 
   let cookieHeader = "";
   try {
@@ -98,21 +97,65 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
       if (payload?.exp && payload.exp * 1000 < Date.now()) {
         hasSupabaseSession = false;
-      } else if (payload?.aal === "aal2") {
-        hasAal2 = true;
       }
     } catch (e) {
       console.error("[MIDDLEWARE] Failed to parse JWT:", e);
     }
   }
 
+  const start = performance.now();
+
   if (!hasSupabaseSession && !isPublic && pathname !== "/") {
+    if (import.meta.env.DEV) {
+      console.log(
+        `\x1b[90m[${new Date().toTimeString().split(" ")[0]}]\x1b[0m 🟡 \x1b[33m307 REDIR\x1b[0m | \x1b[36m${context.request.method}\x1b[0m \x1b[1m${pathname}\x1b[0m -> /login (Unauthenticated)`
+      );
+    }
     return context.redirect("/login", 307);
   }
 
-  if (hasSupabaseSession && (hasAal2 || !import.meta.env.PROD) && (pathname === "/login" || pathname === "/")) {
-    return context.redirect("/dashboard/apps", 307);
+  const response = await next();
+  const duration = Math.round(performance.now() - start);
+
+  // Enterprise Development Terminal Logger
+  if (import.meta.env.DEV && !pathname.startsWith("/_astro")) {
+    const status = response.status;
+    const statusIcon = status >= 200 && status < 300 ? "🟢" : status >= 300 && status < 400 ? "🟡" : "🔴";
+    const durationColor = duration < 100 ? "\x1b[32m" : duration < 500 ? "\x1b[33m" : "\x1b[31m";
+    console.log(
+      `\x1b[90m[${new Date().toTimeString().split(" ")[0]}]\x1b[0m ${statusIcon} \x1b[1m${status}\x1b[0m | \x1b[36m%-4s\x1b[0m \x1b[1m%-24s\x1b[0m | ${durationColor}%4dms\x1b[0m | %s`,
+      context.request.method,
+      pathname,
+      duration,
+      hasSupabaseSession ? "\x1b[32mSuperAdmin\x1b[0m" : "\x1b[90mPublic\x1b[0m"
+    );
   }
 
-  return next();
+  // Enterprise HTTP/3 & QUIC Protocol Negotiation
+  response.headers.set("Alt-Svc", 'h3=":443"; ma=86400, h3-29=":443"; ma=86400, h3-27=":443"; ma=86400');
+
+  // HTTP/2 & HTTP/3 Early Preload Link Header for 103 Early Hints
+  response.headers.set("Link", '</branding/pusdatin.png>; rel=preload; as=image; fetchpriority=high');
+
+  // Enterprise Security & Network Performance Headers
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  response.headers.set("Timing-Allow-Origin", "*");
+
+  // Cloudflare Edge CDN Caching & Revalidation Policies
+  if (isPublic || pathname === "/") {
+    response.headers.set("Cloudflare-CDN-Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+    response.headers.set("CDN-Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+    response.headers.set("Vary", "Accept-Encoding, Accept, Cookie");
+  } else {
+    response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+    response.headers.set("Cloudflare-CDN-Cache-Control", "private, no-store");
+  }
+
+  return response;
 });
+

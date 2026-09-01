@@ -338,7 +338,7 @@ function AnnouncementFormModal({ open, item, onClose, onSubmit, loading }: FormM
     }
   }, [item, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit({
       title: title.trim(),

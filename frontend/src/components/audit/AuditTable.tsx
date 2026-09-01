@@ -14,18 +14,64 @@ interface AuditTableProps {
   data: AuditLog[];
   loading?: boolean;
   onRowClick?: (log: AuditLog) => void;
+  selectedIds?: string[];
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
-export function AuditTable({ data, loading, onRowClick }: AuditTableProps) {
+export function AuditTable({
+  data,
+  loading,
+  onRowClick,
+  selectedIds = [],
+  onToggleSelect,
+  onToggleSelectAll,
+}: AuditTableProps) {
+  const isAllSelected = data.length > 0 && data.every((item) => selectedIds.includes(item.id));
+  const isSomeSelected = data.some((item) => selectedIds.includes(item.id)) && !isAllSelected;
+
   return (
     <Table<AuditLog>
       columns={[
+        {
+          key: "select",
+          header: onToggleSelectAll ? (
+            <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                aria-label="Pilih Semua Log"
+                checked={isAllSelected}
+                ref={(input) => {
+                  if (input) input.indeterminate = isSomeSelected;
+                }}
+                onChange={onToggleSelectAll}
+                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:checked:bg-emerald-600 cursor-pointer transition-colors"
+              />
+            </div>
+          ) : "",
+          className: "w-10 px-3",
+          render: (log) =>
+            onToggleSelect ? (
+              <div
+                className="flex items-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  aria-label={`Pilih log ${log.id}`}
+                  checked={selectedIds.includes(log.id)}
+                  onChange={() => onToggleSelect(log.id)}
+                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:checked:bg-emerald-600 cursor-pointer transition-colors"
+                />
+              </div>
+            ) : null,
+        },
         {
           key: "timestamp",
           header: "Waktu",
           sortable: true,
           render: (log) => (
-            <span className="text-slate-600 dark:text-slate-400 text-xs">
+            <span className="text-slate-600 dark:text-slate-400 text-xs font-medium">
               {formatRelativeDate(log.timestamp)}
             </span>
           ),
@@ -52,14 +98,26 @@ export function AuditTable({ data, loading, onRowClick }: AuditTableProps) {
           key: "performedBy",
           header: "Oleh",
           sortable: true,
+          render: (log) => (
+            <span className="text-slate-700 dark:text-slate-300 text-xs font-medium">
+              {log.performedBy || "Sistem"}
+            </span>
+          ),
         },
         {
           key: "id",
           header: "Detail",
-          render: () => (
-            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-medium hover:underline cursor-pointer">
+          render: (log) => (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRowClick?.(log);
+              }}
+              className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold hover:underline"
+            >
               Lihat detail
-            </span>
+            </button>
           ),
         },
       ]}

@@ -1,6 +1,7 @@
 
 import { motion, Variants } from "framer-motion";
 import { ArrowUpRight, AppWindow, Building2 } from "lucide-react";
+import { trackAppClick } from "@/lib/analytics";
 
 interface LayananClientContentProps {
   apps: any[];
@@ -93,7 +94,7 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[#006838] dark:text-emerald-400 group-hover:bg-[#006838]/10 transition-colors shadow-sm">
                       {app.icon && (app.icon.startsWith('/') || app.icon.startsWith('http')) ? (
-                        <img src={app.icon} alt={app.name || "Logo Aplikasi"} loading="lazy" decoding="async" className="h-7 w-7 object-contain drop-shadow-sm" />
+                        <img src={app.icon} alt={app.name || "Logo Aplikasi"} width={28} height={28} loading="lazy" decoding="async" className="h-7 w-7 object-contain drop-shadow-sm" />
                       ) : (
                         <AppWindow className="h-6 w-6" />
                       )}
@@ -134,6 +135,14 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
                         href={app.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() =>
+                          trackAppClick({
+                            id: app.id,
+                            name: app.name,
+                            url: app.url,
+                            schemaName: app.schemaName,
+                          })
+                        }
                         className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006838] dark:hover:bg-[#006838] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white transition-all duration-200 shadow-sm"
                       >
                         Akses Aplikasi <ArrowUpRight className="h-4 w-4" />

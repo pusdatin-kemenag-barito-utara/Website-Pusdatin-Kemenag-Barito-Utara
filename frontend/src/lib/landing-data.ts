@@ -1,11 +1,11 @@
 interface LandingData {
   stats: {
     totalAppsCount: number;
-    layananMasyarakat: number;
-    layananPegawai: number;
-    totalAdmin: number;
-    totalPegawai: number;
-    totalMasyarakat: number;
+    onlineAppsCount: number;
+    totalAnnouncements: number;
+    totalAuditLogs: number;
+    superAdminCount: number;
+    systemHealthPercent: number;
   };
   apps: any[];
 }
@@ -13,11 +13,11 @@ interface LandingData {
 const fallbackData: LandingData = {
   stats: {
     totalAppsCount: 0,
-    layananMasyarakat: 0,
-    layananPegawai: 0,
-    totalAdmin: 0,
-    totalPegawai: 0,
-    totalMasyarakat: 0,
+    onlineAppsCount: 0,
+    totalAnnouncements: 0,
+    totalAuditLogs: 0,
+    superAdminCount: 1,
+    systemHealthPercent: 100,
   },
   apps: [],
 };

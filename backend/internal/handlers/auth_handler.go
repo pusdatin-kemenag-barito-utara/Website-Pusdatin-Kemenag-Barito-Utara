@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/auth"
 	"pusdatin/backend/internal/config"
@@ -27,7 +27,7 @@ func NewAuthHandler(cfg *config.Config, authService *services.AuthService) *Auth
 }
 
 // LoginHandler POST /api/auth/login
-func (h *AuthHandler) LoginHandler(c *fiber.Ctx) error {
+func (h *AuthHandler) LoginHandler(c fiber.Ctx) error {
 	var req struct {
 		Email          string `json:"email"`
 		Password       string `json:"password"`
@@ -84,7 +84,7 @@ func (h *AuthHandler) LoginHandler(c *fiber.Ctx) error {
 }
 
 // LogoutHandler POST /api/auth/logout
-func (h *AuthHandler) LogoutHandler(c *fiber.Ctx) error {
+func (h *AuthHandler) LogoutHandler(c fiber.Ctx) error {
 	var req struct {
 		ForgetDevice bool `json:"forgetDevice"`
 	}
@@ -112,7 +112,7 @@ func (h *AuthHandler) LogoutHandler(c *fiber.Ctx) error {
 }
 
 // MFACompleteHandler POST /api/auth/mfa/complete
-func (h *AuthHandler) MFACompleteHandler(c *fiber.Ctx) error {
+func (h *AuthHandler) MFACompleteHandler(c fiber.Ctx) error {
 	var req struct {
 		ReturnTo    string `json:"returnTo"`
 		TrustDevice bool   `json:"trustDevice"`
@@ -165,7 +165,7 @@ func (h *AuthHandler) MFACompleteHandler(c *fiber.Ctx) error {
 }
 
 // SessionHandler GET /api/auth/session
-func (h *AuthHandler) SessionHandler(c *fiber.Ctx) error {
+func (h *AuthHandler) SessionHandler(c fiber.Ctx) error {
 	session := middleware.GetSession(c)
 	accessToken := auth.ExtractAccessToken(c)
 	trustedCookie := c.Cookies(auth.TrustedDeviceCookieName())
@@ -175,7 +175,7 @@ func (h *AuthHandler) SessionHandler(c *fiber.Ctx) error {
 }
 
 // SSOJumpHandler GET /api/sso/jump?returnTo=/some/path
-func (h *AuthHandler) SSOJumpHandler(c *fiber.Ctx) error {
+func (h *AuthHandler) SSOJumpHandler(c fiber.Ctx) error {
 	returnTo := c.Query("returnTo")
 	cleanReturnTo := services.SanitizeReturnURL(returnTo)
 	if cleanReturnTo == "" {
@@ -188,12 +188,12 @@ func (h *AuthHandler) SSOJumpHandler(c *fiber.Ctx) error {
 		if returnTo != "" {
 			loginURL += "?returnTo=" + returnTo
 		}
-		return c.Redirect(loginURL, fiber.StatusTemporaryRedirect)
+		return c.Redirect().Status(fiber.StatusTemporaryRedirect).To(loginURL)
 	}
 
 	link, err := h.authService.GenerateSSOJump(c.Context(), session, cleanReturnTo)
 	if err != nil || link == "" {
 		return utils.Internal(c, "Gagal membuat link SSO")
 	}
-	return c.Redirect(link, fiber.StatusTemporaryRedirect)
+	return c.Redirect().Status(fiber.StatusTemporaryRedirect).To(link)
 }
