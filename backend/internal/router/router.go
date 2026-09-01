@@ -22,6 +22,7 @@ type Handlers struct {
 func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	// Public routes (no auth required)
 	app.Get("/api/health", h.System.HealthHandler)
+	app.Get("/health", h.System.HealthHandler)
 	app.Get("/api/landing/stats", h.Report.LandingStatsHandler)
 	app.Get("/api/announcements", h.Announcement.ListPublic)
 	app.Get("/uploads/apps/:file", h.Storage.UploadsProxy)

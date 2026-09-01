@@ -63,6 +63,7 @@ RUN apk add --no-cache ca-certificates tzdata curl wget
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV ASTRO_NODE_LOGGING=disabled
 ENV BACKEND_PORT=8080
 ENV BACKEND_URL=http://127.0.0.1:8080
 
