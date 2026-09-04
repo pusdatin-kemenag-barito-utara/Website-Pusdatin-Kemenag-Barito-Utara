@@ -19,7 +19,7 @@
     "test": "go -C backend test ./...",
     "gen": "go -C backend run github.com/sqlc-dev/sqlc/cmd/sqlc generate"
   },
-  "devDependencies": {
+  "dependencies": {
     "concurrently": "^9.1.2"
   }
 }

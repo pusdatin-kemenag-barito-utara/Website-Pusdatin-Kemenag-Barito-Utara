@@ -67,9 +67,8 @@ ENV ASTRO_NODE_LOGGING=disabled
 ENV BACKEND_PORT=8080
 ENV BACKEND_URL=http://127.0.0.1:8080
 
-# Copy root package files & install concurrently for runner
-COPY package.json ./
-RUN npm install --only=production concurrently --legacy-peer-deps
+# Install concurrently globally so it is always present in PATH (/usr/local/bin/concurrently)
+RUN npm install -g concurrently
 
 # Copy Go backend binary from Stage 1 & ensure executable
 COPY --from=backend-builder /app/backend/bin/api /app/backend/bin/api
@@ -86,8 +85,8 @@ EXPOSE 8080
 
 # Explicit Docker Healthcheck for Coolify / Docker Engine
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
-  CMD curl -f http://127.0.0.1:3000/health || curl -f http://127.0.0.1:8080/health || exit 1
+  CMD curl -f http://127.0.0.1:3000/api/health || curl -f http://127.0.0.1:8080/api/health || curl -f http://127.0.0.1:3000/health || exit 1
 
 # Start both Go Backend and Astro Node Frontend concurrently
-CMD ["./node_modules/.bin/concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
+CMD ["concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
 
