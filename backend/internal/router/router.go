@@ -21,6 +21,9 @@ type Handlers struct {
 // Register wires all HTTP routes with appropriate middlewares and handlers.
 func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	// Public routes (no auth required)
+	app.Get("/", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{"status": "ok", "service": "pusdatin-api"})
+	})
 	app.Get("/api/health", h.System.HealthHandler)
 	app.Get("/health", h.System.HealthHandler)
 	app.Get("/api/landing/stats", h.Report.LandingStatsHandler)

@@ -4,7 +4,7 @@ import node from "@astrojs/node";
 import tailwindcss from "@tailwindcss/vite";
 import AstroPWA from "@vite-pwa/astro";
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8080";
 
 export default defineConfig({
   output: "server",

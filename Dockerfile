@@ -71,8 +71,9 @@ ENV BACKEND_URL=http://127.0.0.1:8080
 COPY package.json ./
 RUN npm install --only=production concurrently --legacy-peer-deps
 
-# Copy Go backend binary from Stage 1
+# Copy Go backend binary from Stage 1 & ensure executable
 COPY --from=backend-builder /app/backend/bin/api /app/backend/bin/api
+RUN chmod +x /app/backend/bin/api
 
 # Copy Astro frontend build from Stage 2
 COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
@@ -83,5 +84,10 @@ COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modul
 EXPOSE 3000
 EXPOSE 8080
 
+# Explicit Docker Healthcheck for Coolify / Docker Engine
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD curl -f http://127.0.0.1:3000/health || curl -f http://127.0.0.1:8080/health || exit 1
+
 # Start both Go Backend and Astro Node Frontend concurrently
-CMD ["npx", "concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
+CMD ["./node_modules/.bin/concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
+

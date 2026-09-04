@@ -31,7 +31,7 @@ export async function getLandingData(): Promise<LandingData> {
     return cache.data;
   }
 
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+  const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8080";
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2000); // 2s timeout
@@ -72,7 +72,7 @@ export async function getAnnouncementsData(): Promise<any[]> {
     return announcementCache.data;
   }
 
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+  const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8080";
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2000);
