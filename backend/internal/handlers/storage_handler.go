@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -49,11 +50,17 @@ func (h *StorageHandler) UploadFile(c fiber.Ctx) error {
 	})
 }
 
-// UploadsProxy streams an object from R2 with in-memory RAM caching.
+// UploadsProxy redirects or streams an object from R2 CDN.
 func (h *StorageHandler) UploadsProxy(c fiber.Ctx) error {
 	filename := c.Params("file")
 	if filename == "" {
 		filename = c.Params("*")
+	}
+
+	cleanName := filepath.Base(filename)
+	if cleanName != "" && cleanName != "." && cleanName != "/" {
+		// Instantly redirect to Cloudflare Worker edge CDN for maximum speed & zero server load
+		return c.Redirect().Status(fiber.StatusMovedPermanently).To("https://files.kemenag-baritoutara.com/pusdatin/apps/" + cleanName)
 	}
 
 	result, err := h.storageService.ResolveUploadObject(c.Context(), filename)

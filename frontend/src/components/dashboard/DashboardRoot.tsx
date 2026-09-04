@@ -33,7 +33,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return (
         <div className="p-8 max-w-2xl mx-auto my-12 bg-red-50 border border-red-200 rounded-2xl text-red-800 space-y-4">
           <h2 className="text-xl font-bold">Terjadi Kesalahan Tampilan Dasbor</h2>
-          <p className="font-mono text-sm bg-white p-4 rounded border border-red-100 overflow-x-auto">
+          <p className="text-sm bg-white p-4 rounded border border-red-100 overflow-x-auto">
             {this.state.error?.message || "Unknown rendering error"}
           </p>
           <pre className="text-xs text-red-600 overflow-x-auto max-h-48 whitespace-pre-wrap">

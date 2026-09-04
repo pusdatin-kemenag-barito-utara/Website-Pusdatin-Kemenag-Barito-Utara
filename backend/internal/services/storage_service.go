@@ -122,7 +122,11 @@ func (s *StorageService) UploadAppLogo(ctx context.Context, originalFilename, co
 	}
 	s.mu.Unlock()
 
-	return "/uploads/apps/" + filename, nil
+	publicBase := strings.TrimRight(s.cfg.R2PublicURL, "/")
+	if publicBase == "" {
+		publicBase = "https://files.kemenag-baritoutara.com/pusdatin"
+	}
+	return fmt.Sprintf("%s/apps/%s", publicBase, filename), nil
 }
 
 type StorageProxyResult struct {

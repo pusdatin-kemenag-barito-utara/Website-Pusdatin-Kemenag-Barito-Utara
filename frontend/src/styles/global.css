@@ -4,6 +4,8 @@
 
 @theme {
   --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Plus Jakarta Sans", sans-serif;
 
   --color-primary-50: #ecfdf5;
   --color-primary-100: #d1fae5;
@@ -80,10 +82,17 @@
 :root,
 html,
 body,
+*,
+*::before,
+*::after,
 button,
 input,
 optgroup,
 select,
-textarea {
+textarea,
+pre,
+code,
+kbd,
+samp {
   font-family: "Plus Jakarta Sans", sans-serif !important;
 }

@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-export function Turnstile({ onVerify, theme = "auto" }: TurnstileProps) {
+export function Turnstile({ onVerify, theme = "light" }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onVerifyRef = useRef(onVerify);

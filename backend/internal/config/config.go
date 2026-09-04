@@ -33,6 +33,7 @@ type Config struct {
 	R2EndpointURL     string
 	R2BucketPusdatin  string
 	R2BucketBackup    string
+	R2PublicURL       string
 
 	RedisURL string
 
@@ -73,6 +74,7 @@ func Load() (*Config, error) {
 		R2EndpointURL:          os.Getenv("R2_ENDPOINT_URL"),
 		R2BucketPusdatin:       getEnv("R2_BUCKET_PUSDATIN", "data-pusdatin"),
 		R2BucketBackup:         getEnv("R2_BUCKET_BACKUP", "database-back-up-daily"),
+		R2PublicURL:            getEnv("R2_PUBLIC_URL", "https://files.kemenag-baritoutara.com/pusdatin"),
 		RedisURL:               os.Getenv("REDIS_URL"),
 		SiteURL:                getEnv("PUBLIC_SITE_URL", getEnv("SITE_URL", "https://pusdatin.kemenag-baritoutara.com")),
 		IsProduction:           env == "production" || env == "prod",

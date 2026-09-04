@@ -32,6 +32,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Left Section - Branding/Visual */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-emerald-900 overflow-hidden items-center justify-center">
+        {/* Back to Web Button on Left Panel */}
+        <a 
+          href="/" 
+          className="absolute top-6 left-6 lg:top-8 lg:left-8 z-20 flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 transition-all shadow-sm hover:shadow"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Kembali ke Halaman Utama</span>
+        </a>
+
         {/* Decorative background shapes */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 via-emerald-900 to-green-950"></div>
 
@@ -63,10 +72,10 @@ export default function LoginPage() {
 
       {/* Right Section - Login Form */}
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 bg-white dark:bg-slate-900 relative">
-        {/* Back to Web Button */}
+        {/* Back to Web Button (Mobile only) */}
         <a 
           href="/" 
-          className="absolute top-6 left-6 lg:top-8 lg:left-8 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/50"
+          className="lg:hidden absolute top-6 left-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/50"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Kembali ke Halaman Utama</span>
@@ -150,7 +159,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="pt-2 w-full">
-                  <Turnstile onVerify={setTurnstileToken} />
+                  <Turnstile onVerify={setTurnstileToken} theme="light" />
                 </div>
 
                 {error && (
@@ -213,7 +222,7 @@ export default function LoginPage() {
                     onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                     icon={<KeyRound className="h-4 w-4 text-slate-400 dark:text-slate-500" />}
                     required
-                    className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-900 text-center tracking-[0.75em] font-mono text-2xl py-6 transition-colors"
+                    className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-900 text-center tracking-[0.75em] text-2xl py-6 transition-colors"
                   />
                 </div>
 

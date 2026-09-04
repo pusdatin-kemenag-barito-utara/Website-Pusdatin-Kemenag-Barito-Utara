@@ -321,7 +321,7 @@ export function BackupPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
                         {sc.schemaName}
                       </span>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -332,7 +332,7 @@ export function BackupPage() {
                   </div>
                   <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-[11px]">
                     <span className="font-semibold text-slate-600 dark:text-slate-400">{formatBytes(sc.byteSize)}</span>
-                    <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400">{sc.fileName}</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{sc.fileName}</span>
                   </div>
                 </div>
               ))}
@@ -405,7 +405,7 @@ export function BackupPage() {
                           <FolderArchive className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 dark:text-white leading-tight font-mono text-xs">
+                          <p className="font-bold text-slate-900 dark:text-white leading-tight text-xs">
                             {snap.folder}
                           </p>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -524,7 +524,7 @@ export function BackupPage() {
                 </strong>
               </div>
               {selectedSnapshot.manifest?.checksumSha256 && (
-                <div className="w-full pt-1.5 border-t border-slate-200 dark:border-slate-800 font-mono text-[10px] text-slate-500 truncate">
+                <div className="w-full pt-1.5 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 truncate">
                   SHA256: {selectedSnapshot.manifest.checksumSha256}
                 </div>
               )}
@@ -562,7 +562,7 @@ export function BackupPage() {
                         )}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white font-mono">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
                           {file.fileName}
                         </p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">

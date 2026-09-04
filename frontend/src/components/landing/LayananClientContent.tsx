@@ -27,6 +27,19 @@ const itemVariants: Variants = {
   },
 };
 
+const parseIconUrl = (iconStr: string | null) => {
+  if (!iconStr) return { url: "", scale: 100 };
+  const [url, query] = iconStr.split("?");
+  let scale = 100;
+  if (query) {
+    const params = new URLSearchParams(query);
+    if (params.has("scale")) {
+      scale = parseInt(params.get("scale")!, 10);
+    }
+  }
+  return { url, scale };
+};
+
 export function LayananClientContent({ apps }: LayananClientContentProps) {
   return (
     <div className="flex-1 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-[#006838] selection:text-white">
@@ -83,75 +96,106 @@ export function LayananClientContent({ apps }: LayananClientContentProps) {
             animate="visible"
             className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {apps.map((app) => (
-              <motion.div
-                key={app.id}
-                variants={itemVariants}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="group relative rounded-xl bg-white dark:bg-slate-900/80 p-6 border border-slate-200 dark:border-slate-800 hover:border-[#006838]/40 dark:hover:border-emerald-500/40 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[#006838] dark:text-emerald-400 group-hover:bg-[#006838]/10 transition-colors shadow-sm">
-                      {app.icon && (app.icon.startsWith('/') || app.icon.startsWith('http')) ? (
-                        <img src={app.icon} alt={app.name || "Logo Aplikasi"} width={28} height={28} loading="lazy" decoding="async" className="h-7 w-7 object-contain drop-shadow-sm" />
+            {apps.map((app) => {
+              const isMaintenance = app.status === 'maintenance';
+              return (
+                <motion.div
+                  key={app.id}
+                  variants={itemVariants}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className={`group relative rounded-xl bg-white dark:bg-slate-900/80 p-6 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all duration-200 flex flex-col justify-between ${
+                    isMaintenance
+                      ? "hover:border-amber-500/40 dark:hover:border-amber-500/40"
+                      : "hover:border-[#006838]/40 dark:hover:border-emerald-500/40"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-lg border shadow-sm overflow-hidden transition-colors ${
+                          isMaintenance
+                            ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20"
+                            : "bg-emerald-500/10 border-emerald-500/20 text-[#006838] dark:text-emerald-400 group-hover:bg-[#006838]/10"
+                        }`}
+                      >
+                        {(() => {
+                          const iconData = parseIconUrl(app.icon);
+                          return iconData.url ? (
+                            <img 
+                              src={iconData.url} 
+                              alt={app.name || "Logo Aplikasi"} 
+                              width={32} 
+                              height={32} 
+                              loading="lazy" 
+                              decoding="async" 
+                              style={{ transform: `scale(${iconData.scale / 100})` }}
+                              className="h-8 w-8 object-contain drop-shadow-sm transition-transform" 
+                            />
+                          ) : (
+                            <AppWindow className="h-6 w-6" />
+                          );
+                        })()}
+                      </div>
+                      {isMaintenance ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          Maintenance
+                        </span>
                       ) : (
-                        <AppWindow className="h-6 w-6" />
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Online
+                        </span>
                       )}
                     </div>
-                    {app.status === 'maintenance' ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] font-semibold text-red-700 dark:text-red-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                        Maintenance
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Online
-                      </span>
-                    )}
+
+                    <h3
+                      className={`mt-5 font-bold text-slate-900 dark:text-white text-base transition-colors ${
+                        isMaintenance
+                          ? "group-hover:text-amber-600 dark:group-hover:text-amber-400"
+                          : "group-hover:text-[#006838] dark:group-hover:text-emerald-400"
+                      }`}
+                    >
+                      {app.name}
+                    </h3>
+
+                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {app.description || "Aplikasi layanan terintegrasi dalam ekosistem SSO PUSDATIN Kemenag Barito Utara."}
+                    </p>
                   </div>
 
-                  <h3 className="mt-5 font-bold text-slate-900 dark:text-white text-base group-hover:text-[#006838] dark:group-hover:text-emerald-400 transition-colors">
-                    {app.name}
-                  </h3>
-
-                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {app.description || "Aplikasi layanan terintegrasi dalam ekosistem SSO PUSDATIN Kemenag Barito Utara."}
-                  </p>
-                </div>
-
-                {app.url && (
-                  <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                    {app.status === 'maintenance' ? (
-                      <a
-                        href={`/maintenance?app=${encodeURIComponent(app.name)}`}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-4 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300 transition-all duration-200 shadow-sm"
-                      >
-                        Sedang Pemeliharaan <ArrowUpRight className="h-4 w-4" />
-                      </a>
-                    ) : (
-                      <a
-                        href={app.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() =>
-                          trackAppClick({
-                            id: app.id,
-                            name: app.name,
-                            url: app.url,
-                            schemaName: app.schemaName,
-                          })
-                        }
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006838] dark:hover:bg-[#006838] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white transition-all duration-200 shadow-sm"
-                      >
-                        Akses Aplikasi <ArrowUpRight className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            ))}
+                  {app.url && (
+                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                      {isMaintenance ? (
+                        <a
+                          href={`/maintenance?app=${encodeURIComponent(app.name)}`}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-4 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300 transition-all duration-200 shadow-sm"
+                        >
+                          Sedang Pemeliharaan <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <a
+                          href={app.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() =>
+                            trackAppClick({
+                              id: app.id,
+                              name: app.name,
+                              url: app.url,
+                              schemaName: app.schemaName,
+                            })
+                          }
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006838] dark:hover:bg-[#006838] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white transition-all duration-200 shadow-sm"
+                        >
+                          Akses Aplikasi <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </motion.div>
         ) : (
           <div className="text-center py-16 bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">

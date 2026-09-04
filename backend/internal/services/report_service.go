@@ -73,7 +73,7 @@ func (s *ReportService) GetLandingData(ctx context.Context) (*domain.LandingData
 		}
 	}
 
-	apps, err := s.appRepo.ListOnlineApps(ctx)
+	apps, err := s.appRepo.ListApps(ctx)
 	if err != nil || apps == nil {
 		apps = []*domain.App{}
 	}
