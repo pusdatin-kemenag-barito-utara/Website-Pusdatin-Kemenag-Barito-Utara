@@ -27,8 +27,9 @@
     "lucide-react": "^1.14.0",
     "react": "^19",
     "react-dom": "^19",
+    "react-is": "^19.2.8",
     "react-router-dom": "^7.18.2",
-    "recharts": "^2.15.3",
+    "recharts": "^3.10.1",
     "three": "^0.185.1",
     "zustand": "^5.0.5"
   },
@@ -42,5 +43,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "typescript-eslint": "^8.67.0"
+  },
+  "overrides": {
+    "glob": "^13.0.6"
   }
 }
