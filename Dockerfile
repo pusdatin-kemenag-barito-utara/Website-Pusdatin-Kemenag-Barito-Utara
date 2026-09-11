@@ -34,11 +34,11 @@ RUN npm ci --legacy-peer-deps
 COPY frontend/ ./
 
 # Pass environment variables for Astro build
-ARG PUBLIC_SUPABASE_URL="https://db.kemenag-baritoutara.com"
+ARG PUBLIC_SUPABASE_URL=""
 ARG PUBLIC_SUPABASE_ANON_KEY=""
 ARG PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
 ARG PUBLIC_TURNSTILE_SITE_KEY=""
-ARG PUBLIC_SITE_URL="https://pusdatin.kemenag-baritoutara.com"
+ARG PUBLIC_SITE_URL=""
 ARG BACKEND_URL="http://127.0.0.1:8080"
 
 ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL

@@ -29,6 +29,7 @@ function formatQrCode(qr: string): string {
 
 export function useAdminLogin() {
   const supabase = createBrowserSupabaseClient();
+  const supaKey = env.supabaseAnonKey || env.supabasePublishableKey;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,11 +83,15 @@ export function useAdminLogin() {
         }
 
         // Sync session in browser Supabase client
-        if (token) {
-          await supabase.auth.setSession({
-            access_token: token,
-            refresh_token: data.refreshToken || "",
-          });
+        if (token && supabase?.auth) {
+          try {
+            await supabase.auth.setSession({
+              access_token: token,
+              refresh_token: data.refreshToken || "",
+            });
+          } catch (e) {
+            console.warn("[AUTH LOG] Supabase setSession warning:", e);
+          }
         }
 
         // Check MFA status
@@ -102,7 +107,7 @@ export function useAdminLogin() {
               try {
                 const factorsRes = await fetch(`${env.supabaseUrl}/auth/v1/factors`, {
                   headers: {
-                    "apikey": env.supabaseAnonKey,
+                    "apikey": supaKey,
                     "Authorization": `Bearer ${token}`,
                   },
                 });
@@ -131,7 +136,7 @@ export function useAdminLogin() {
           try {
             const factorsRes = await fetch(`${env.supabaseUrl}/auth/v1/factors`, {
               headers: {
-                "apikey": env.supabaseAnonKey,
+                "apikey": supaKey,
                 "Authorization": `Bearer ${token}`,
               },
             });
@@ -151,7 +156,7 @@ export function useAdminLogin() {
                 await fetch(`${env.supabaseUrl}/auth/v1/factors/${uf.id}`, {
                   method: "DELETE",
                   headers: {
-                    "apikey": env.supabaseAnonKey,
+                    "apikey": supaKey,
                     "Authorization": `Bearer ${token}`,
                   },
                 });
@@ -167,7 +172,7 @@ export function useAdminLogin() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "apikey": env.supabaseAnonKey,
+              "apikey": supaKey,
               "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
@@ -206,7 +211,7 @@ export function useAdminLogin() {
         setLoading(false);
       }
     },
-    [email, password, turnstileToken, supabase],
+    [email, password, turnstileToken, supabase, supaKey],
   );
 
   const handleVerifyOTP = useCallback(
@@ -228,7 +233,7 @@ export function useAdminLogin() {
           console.log("[AUTH LOG] Fetching factors list for verify...");
           const factorsRes = await fetch(`${env.supabaseUrl}/auth/v1/factors`, {
             headers: {
-              "apikey": env.supabaseAnonKey,
+              "apikey": supaKey,
               "Authorization": `Bearer ${authToken}`,
             },
           });
@@ -256,7 +261,7 @@ export function useAdminLogin() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "apikey": env.supabaseAnonKey,
+              "apikey": supaKey,
               "Authorization": `Bearer ${authToken}`,
             },
           },
@@ -274,7 +279,7 @@ export function useAdminLogin() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "apikey": env.supabaseAnonKey,
+              "apikey": supaKey,
               "Authorization": `Bearer ${authToken}`,
             },
             body: JSON.stringify({
@@ -291,11 +296,15 @@ export function useAdminLogin() {
 
         const aal2Token = verifyData.access_token || authToken;
 
-        if (verifyData.access_token) {
-          await supabase.auth.setSession({
-            access_token: verifyData.access_token,
-            refresh_token: verifyData.refresh_token || "",
-          });
+        if (verifyData.access_token && supabase?.auth) {
+          try {
+            await supabase.auth.setSession({
+              access_token: verifyData.access_token,
+              refresh_token: verifyData.refresh_token || "",
+            });
+          } catch (e) {
+            console.warn("[AUTH LOG] Supabase setSession warning:", e);
+          }
         }
 
         console.log("[AUTH LOG] MFA verification succeeded. Completing login session with AAL2 token...");
@@ -340,11 +349,15 @@ export function useAdminLogin() {
         setLoading(false);
       }
     },
-    [verifyCode, mfaFactorId, mfaState, authToken, trustDevice, supabase],
+    [verifyCode, mfaFactorId, mfaState, authToken, trustDevice, supabase, supaKey],
   );
 
   const cancelMfa = () => {
-    supabase.auth.signOut();
+    try {
+      supabase?.auth?.signOut();
+    } catch {
+      // ignore
+    }
     setMfaState("none");
     setVerifyCode("");
     setError("");

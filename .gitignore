@@ -1,12 +1,18 @@
 # ==========================================
-# UNIFIED PRODUCTION .GITIGNORE
+# UNIFIED ENTERPRISE PRODUCTION .GITIGNORE
 # Pusdatin Kemenag Barito Utara (FE + BE)
 # ==========================================
 
-# --- Environment & Secret Keys ---
+# --- Environment & Secret Keys (Strict Zero Leaks) ---
 .env
 .env.*
 !.env.example
+*.env
+*.env.*
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
 backend/.env
 backend/.env.*
 !backend/.env.example
@@ -14,13 +20,34 @@ frontend/.env
 frontend/.env.*
 !frontend/.env.example
 
+# --- Infisical CLI Cache & Local Credentials ---
+.infisical/
+**/.infisical/
+secrets/
+*.secret
+*.token
+
+# --- Certificates, Private Keys & Keystores ---
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.pkcs12
+*.keystore
+id_rsa
+id_rsa*
+id_ed25519
+id_ed25519*
+
 # --- Frontend (Node, Astro, Vite, Build Output) ---
 node_modules/
-frontend/node_modules/
+**/node_modules/
 dist/
-frontend/dist/
+**/dist/
 .astro/
-frontend/.astro/
+**/.astro/
 .cache/
 .turbo/
 .eslintcache
@@ -49,10 +76,14 @@ tmp/
 *.so
 *.dylib
 
-# --- Database & Storage Uploads ---
+# --- Database Dumps & Storage Uploads ---
 *.db
 *.sqlite
 *.sqlite3
+*.sql
+*.sql.gz
+*.dump
+*.bak
 backend/data/*.db
 # Ignore actual upload storage directories (NOT the Astro pages/uploads/ route)
 /uploads/
@@ -86,7 +117,9 @@ ehthumbs.db
 
 # --- AI Assistant & Temporary Scratch ---
 .gemini/
+**/.gemini/
 .claude/
 .opencode/
 .antigravitycli/
 scratch/
+**/.agents/scratch/

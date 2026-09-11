@@ -1,16 +1,27 @@
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { env } from "../env";
 
-export function createBrowserSupabaseClient() {
+let cachedClient: SupabaseClient | null = null;
+
+export function createBrowserSupabaseClient(): SupabaseClient | null {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
   const url = env.supabaseUrl;
-  const key = env.supabasePublishableKey;
+  const key = env.supabasePublishableKey || env.supabaseAnonKey;
 
-  if (!url) throw new Error("PUBLIC_SUPABASE_URL tidak tersedia");
-  if (!key) throw new Error("PUBLIC_SUPABASE_PUBLISHABLE_KEY tidak tersedia");
+  if (!url || !key) {
+    console.warn("[Supabase Client] URL atau Key Supabase belum tersedia di environment.");
+    return null;
+  }
 
-  return createBrowserClient(url, key, {
+  cachedClient = createBrowserClient(url, key, {
     cookieOptions: {
       name: "sb-pusdatin-auth-token",
     },
   });
+
+  return cachedClient;
 }

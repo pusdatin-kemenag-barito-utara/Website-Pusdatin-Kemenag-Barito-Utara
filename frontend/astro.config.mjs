@@ -23,8 +23,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       manifest: false,
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webmanifest}"],
-        navigateFallbackDenylist: [/^\/api/, /^\/uploads/],
+        navigateFallback: null,
+        globPatterns: ["**/*.{js,css,ico,png,svg,woff2,webmanifest}"],
+        navigateFallbackDenylist: [/^\/api/, /^\/uploads/, /^\/login/],
       },
     }),
   ],
