@@ -1,8 +1,8 @@
 // Public (PUBLIC_*) variables only. Server-side secrets live
 // exclusively in backend/.env and are never exposed to the frontend bundle.
 export const env = {
-  siteUrl: import.meta.env.PUBLIC_SITE_URL || "",
-  supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || "",
+  siteUrl: import.meta.env.PUBLIC_SITE_URL || "https://pusdatin.kemenag-baritoutara.com",
+  supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || "https://db.kemenag-baritoutara.com",
   supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "",
   supabasePublishableKey:
     import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
@@ -17,6 +17,6 @@ export const env = {
     import.meta.env.PUBLIC_CF_BEACON_TOKEN || "",
 };
 
-if (!env.supabaseUrl) {
+if (!env.supabaseUrl && typeof window !== "undefined") {
   throw new Error("PUBLIC_SUPABASE_URL is required");
 }
