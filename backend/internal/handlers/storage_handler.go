@@ -59,8 +59,9 @@ func (h *StorageHandler) UploadsProxy(c fiber.Ctx) error {
 
 	cleanName := filepath.Base(filename)
 	if cleanName != "" && cleanName != "." && cleanName != "/" {
-		// Instantly redirect to Cloudflare Worker edge CDN for maximum speed & zero server load
-		return c.Redirect().Status(fiber.StatusMovedPermanently).To("https://files.kemenag-baritoutara.com/pusdatin/apps/" + cleanName)
+		if appURL := h.storageService.GetPublicAppURL(cleanName); appURL != "" {
+			return c.Redirect().Status(fiber.StatusMovedPermanently).To(appURL)
+		}
 	}
 
 	result, err := h.storageService.ResolveUploadObject(c.Context(), filename)

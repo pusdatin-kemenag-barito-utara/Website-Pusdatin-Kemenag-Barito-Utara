@@ -124,9 +124,17 @@ func (s *StorageService) UploadAppLogo(ctx context.Context, originalFilename, co
 
 	publicBase := strings.TrimRight(s.cfg.R2PublicURL, "/")
 	if publicBase == "" {
-		publicBase = "https://files.kemenag-baritoutara.com/pusdatin"
+		return "", fmt.Errorf("R2_PUBLIC_URL is not configured")
 	}
 	return fmt.Sprintf("%s/apps/%s", publicBase, filename), nil
+}
+
+func (s *StorageService) GetPublicAppURL(filename string) string {
+	publicBase := strings.TrimRight(s.cfg.R2PublicURL, "/")
+	if publicBase == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s/apps/%s", publicBase, filename)
 }
 
 type StorageProxyResult struct {

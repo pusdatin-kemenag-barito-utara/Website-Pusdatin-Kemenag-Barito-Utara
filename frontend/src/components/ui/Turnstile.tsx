@@ -32,8 +32,8 @@ export function Turnstile({ onVerify, theme = "light" }: TurnstileProps) {
     let isMounted = true;
     let pollTimer: NodeJS.Timeout | null = null;
 
-    // Use official production site key (Clean display without testing banner)
-    const siteKey = env.turnstileSiteKey || "0x4AAAAAADR1O_LSp1lgc3km";
+    const siteKey = env.turnstileSiteKey;
+    if (!siteKey) return;
 
     const renderWidget = () => {
       if (!isMounted || !container) return;

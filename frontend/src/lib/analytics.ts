@@ -44,6 +44,8 @@ export function trackEvent(eventName: string, params: Record<string, any> = {}) 
   }
 }
 
+import { env } from "./env";
+
 /**
  * Track SPA / Astro View Transition Page View
  */
@@ -53,12 +55,16 @@ export function trackPageView(pagePath?: string, pageTitle?: string) {
   const path = pagePath || window.location.pathname + window.location.search;
   const title = pageTitle || document.title;
 
-  trackEvent("page_view", {
+  const eventData: Record<string, any> = {
     page_location: window.location.href,
     page_path: path,
     page_title: title,
-    send_to: "G-FN3SKRFG3J",
-  });
+  };
+  if (env.gaMeasurementId) {
+    eventData.send_to = env.gaMeasurementId;
+  }
+
+  trackEvent("page_view", eventData);
 }
 
 /**

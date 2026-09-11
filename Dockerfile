@@ -57,8 +57,10 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Install runtime tools (curl & wget required for Coolify healthcheck)
-RUN apk add --no-cache ca-certificates tzdata curl wget
+# Install runtime tools, utilities, and Infisical CLI
+RUN apk add --no-cache ca-certificates tzdata curl wget bash dos2unix \
+  && curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh' | bash \
+  && apk add --no-cache infisical
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
@@ -79,6 +81,10 @@ COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
 COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
 
+# Copy entrypoint script and ensure executable with unix line endings
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose Frontend & Backend ports
 EXPOSE 3000
 EXPOSE 8080
@@ -87,6 +93,9 @@ EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
   CMD curl -f http://127.0.0.1:3000/api/health || curl -f http://127.0.0.1:8080/api/health || curl -f http://127.0.0.1:3000/health || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
+
 # Start both Go Backend and Astro Node Frontend concurrently
 CMD ["concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
+
 
