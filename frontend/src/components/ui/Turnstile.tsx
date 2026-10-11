@@ -113,9 +113,7 @@ export function Turnstile({ onVerify, theme = "light" }: TurnstileProps) {
           });
 
           widgetIdRef.current = id;
-          if (status !== "verified") {
-            setStatus("ready");
-          }
+          setStatus((prev) => (prev !== "verified" ? "ready" : prev));
         } catch (err) {
           console.error("[Turnstile] Render error:", err);
           if (isDev) {
