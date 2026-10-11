@@ -12,23 +12,31 @@ function resolvePublicEnv(
   importMetaVal: string | undefined,
   fallback: string = ""
 ): string {
-  // 1. Server-side Node process.env (injected dynamically by Infisical during runtime)
-  if (typeof process !== "undefined" && process.env) {
-    for (const key of keys) {
-      if (process.env[key]) return process.env[key]!;
+  // 1. Client-side window.__PUBLIC_ENV__ (prioritas utama saat running di browser)
+  if (typeof window !== "undefined") {
+    if (window.__PUBLIC_ENV__) {
+      for (const key of keys) {
+        const val = window.__PUBLIC_ENV__[key];
+        if (val && typeof val === "string" && val.trim() !== "") {
+          return val.trim();
+        }
+      }
     }
   }
 
-  // 2. Client-side window.__PUBLIC_ENV__ (injected into HTML by SSR in BaseLayout.astro)
-  if (typeof window !== "undefined" && window.__PUBLIC_ENV__) {
+  // 2. Server-side Node process.env (injected dynamically by Infisical during runtime)
+  if (typeof process !== "undefined" && process.env) {
     for (const key of keys) {
-      if (window.__PUBLIC_ENV__[key]) return window.__PUBLIC_ENV__[key];
+      const val = process.env[key];
+      if (val && typeof val === "string" && val.trim() !== "") {
+        return val.trim();
+      }
     }
   }
 
   // 3. Build-time Vite / Astro inlined import.meta.env
-  if (importMetaVal) {
-    return importMetaVal;
+  if (importMetaVal && typeof importMetaVal === "string" && importMetaVal.trim() !== "") {
+    return importMetaVal.trim();
   }
 
   return fallback;

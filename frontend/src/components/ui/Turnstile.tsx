@@ -49,128 +49,179 @@ export function Turnstile({ onVerify, theme = "light" }: TurnstileProps) {
 
     let isMounted = true;
     let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    let keyPollInterval: ReturnType<typeof setInterval> | null = null;
     let pollCount = 0;
-    const MAX_POLLS = 60; // 6 seconds max wait
+    const MAX_POLLS = 60; // 6 seconds max wait for cloudflare script
 
-    const siteKey = env.turnstileSiteKey;
-
-    if (!siteKey) {
-      if (isDev) {
-        console.info("[Turnstile Dev] Site Key belum diset di Infisical EV, mengaktifkan bypass otomatis.");
-        setStatus("bypassed");
-        onVerifyRef.current?.("XXXX.DEV_BYPASS_NO_KEY");
-        return;
+    // Helper untuk membaca siteKey secara reaktif dari runtime window & env
+    const resolveKey = (): string => {
+      if (typeof window !== "undefined" && window.__PUBLIC_ENV__) {
+        const directKey =
+          window.__PUBLIC_ENV__.PUBLIC_TURNSTILE_SITE_KEY ||
+          window.__PUBLIC_ENV__.TURNSTILE_SITE_KEY;
+        if (directKey && typeof directKey === "string" && directKey.trim() !== "") {
+          return directKey.trim();
+        }
       }
-      setStatus("error");
-      setErrorMessage("Kunci verifikasi Turnstile belum terkonfigurasi di Infisical.");
-      return;
-    }
+      const envKey = env.turnstileSiteKey;
+      if (envKey && typeof envKey === "string" && envKey.trim() !== "") {
+        return envKey.trim();
+      }
+      return "";
+    };
 
-    const renderWidget = () => {
+    const startTurnstile = (activeKey: string) => {
       if (!isMounted || !container) return;
 
-      if (window.turnstile && typeof window.turnstile.render === "function") {
-        try {
-          if (widgetIdRef.current) {
-            try {
-              window.turnstile.remove(widgetIdRef.current);
-            } catch {
-              // Ignore widget remove error
-            }
-            widgetIdRef.current = null;
-          }
+      const renderWidget = () => {
+        if (!isMounted || !container) return;
 
-          container.innerHTML = "";
-
-          const id = window.turnstile.render(container, {
-            sitekey: siteKey,
-            theme,
-            size: "flexible",
-            callback: (token: string) => {
-              if (!isMounted) return;
-              setStatus("verified");
-              setErrorMessage(null);
-              onVerifyRef.current?.(token);
-            },
-            "expired-callback": () => {
-              if (!isMounted) return;
-              setStatus("ready");
-              onVerifyRef.current?.("");
-            },
-            "error-callback": (err: string) => {
-              console.warn("[Turnstile] Cloudflare Error:", err);
-              if (!isMounted) return;
-              if (isDev) {
-                // In local development, Cloudflare rejects localhost if not added to widget domains.
-                console.info(`[Turnstile Dev] Bypass diaktifkan untuk localhost (Kode CF: ${err}).`);
-                setStatus("bypassed");
-                onVerifyRef.current?.(`XXXX.DEV_BYPASS_CF_${err}`);
-              } else {
-                setStatus("error");
-                setErrorMessage(`Verifikasi keamanan gagal (${err}). Silakan muat ulang.`);
+        if (window.turnstile && typeof window.turnstile.render === "function") {
+          try {
+            if (widgetIdRef.current) {
+              try {
+                window.turnstile.remove(widgetIdRef.current);
+              } catch {
+                // Ignore widget remove error
               }
-            },
-          });
+              widgetIdRef.current = null;
+            }
 
-          widgetIdRef.current = id;
-          setStatus((prev) => (prev !== "verified" ? "ready" : prev));
-        } catch (err) {
-          console.error("[Turnstile] Render error:", err);
+            container.innerHTML = "";
+
+            const id = window.turnstile.render(container, {
+              sitekey: activeKey,
+              theme,
+              size: "flexible",
+              callback: (token: string) => {
+                if (!isMounted) return;
+                setStatus("verified");
+                setErrorMessage(null);
+                onVerifyRef.current?.(token);
+              },
+              "expired-callback": () => {
+                if (!isMounted) return;
+                setStatus("ready");
+                onVerifyRef.current?.("");
+              },
+              "error-callback": (err: string) => {
+                console.warn("[Turnstile] Cloudflare Error:", err);
+                if (!isMounted) return;
+                if (isDev) {
+                  console.info(`[Turnstile Dev] Bypass diaktifkan untuk localhost (Kode CF: ${err}).`);
+                  setStatus("bypassed");
+                  onVerifyRef.current?.(`XXXX.DEV_BYPASS_CF_${err}`);
+                } else {
+                  setStatus("error");
+                  setErrorMessage(`Verifikasi keamanan gagal (${err}). Silakan muat ulang.`);
+                }
+              },
+            });
+
+            widgetIdRef.current = id;
+            setStatus((prev) => (prev !== "verified" ? "ready" : prev));
+          } catch (err) {
+            console.error("[Turnstile] Render error:", err);
+            if (isDev) {
+              setStatus("bypassed");
+              onVerifyRef.current?.("XXXX.DEV_BYPASS_RENDER_ERR");
+            } else {
+              setStatus("error");
+              setErrorMessage("Gagal memuat widget keamanan Turnstile.");
+            }
+          }
+        } else {
+          pollCount++;
+          if (pollCount > MAX_POLLS) {
+            console.warn("[Turnstile] Timeout menunggu skrip challenges.cloudflare.com");
+            if (isDev) {
+              setStatus("bypassed");
+              onVerifyRef.current?.("XXXX.DEV_BYPASS_TIMEOUT");
+            } else {
+              setStatus("error");
+              setErrorMessage("Koneksi ke verifikasi keamanan Cloudflare timed out.");
+            }
+            return;
+          }
+          pollTimer = setTimeout(renderWidget, 100);
+        }
+      };
+
+      // Check if script is already present in document or loaded globally
+      const hasScript =
+        typeof window.turnstile !== "undefined" ||
+        document.querySelector('script[src*="turnstile"]') !== null;
+
+      if (!hasScript) {
+        const script = document.createElement("script");
+        script.id = "cf-turnstile-script";
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        script.onload = () => renderWidget();
+        script.onerror = () => {
+          if (!isMounted) return;
           if (isDev) {
             setStatus("bypassed");
-            onVerifyRef.current?.("XXXX.DEV_BYPASS_RENDER_ERR");
+            onVerifyRef.current?.("XXXX.DEV_BYPASS_SCRIPT_ERR");
           } else {
             setStatus("error");
-            setErrorMessage("Gagal memuat widget keamanan Turnstile.");
+            setErrorMessage("Gagal mengunduh skrip Cloudflare Turnstile.");
           }
-        }
+        };
+        document.head.appendChild(script);
       } else {
-        pollCount++;
-        if (pollCount > MAX_POLLS) {
-          console.warn("[Turnstile] Timeout menunggu skrip challenges.cloudflare.com");
-          if (isDev) {
-            setStatus("bypassed");
-            onVerifyRef.current?.("XXXX.DEV_BYPASS_TIMEOUT");
-          } else {
-            setStatus("error");
-            setErrorMessage("Koneksi ke verifikasi keamanan Cloudflare timed out.");
-          }
-          return;
-        }
-        pollTimer = setTimeout(renderWidget, 100);
+        renderWidget();
       }
     };
 
-    // Check if script is already present in document or loaded globally
-    const hasScript =
-      typeof window.turnstile !== "undefined" ||
-      document.querySelector('script[src*="turnstile"]') !== null;
+    const initialKey = resolveKey();
+    if (initialKey) {
+      startTurnstile(initialKey);
+    } else {
+      // Tunggu hingga 30 kali polling (3 detik) untuk mengantisipasi hidrasi asynchronous / page transition
+      let attempts = 0;
+      keyPollInterval = setInterval(() => {
+        if (!isMounted) {
+          if (keyPollInterval) clearInterval(keyPollInterval);
+          return;
+        }
+        attempts++;
+        const resolved = resolveKey();
+        if (resolved) {
+          if (keyPollInterval) clearInterval(keyPollInterval);
+          keyPollInterval = null;
+          startTurnstile(resolved);
+        } else if (attempts >= 30) {
+          if (keyPollInterval) clearInterval(keyPollInterval);
+          keyPollInterval = null;
+          if (isDev) {
+            console.info("[Turnstile Dev] Site Key belum diset di Infisical EV, mengaktifkan bypass otomatis.");
+            setStatus("bypassed");
+            onVerifyRef.current?.("XXXX.DEV_BYPASS_NO_KEY");
+          } else {
+            setStatus("error");
+            setErrorMessage("Kunci verifikasi Turnstile belum terkonfigurasi di Infisical.");
+          }
+        }
+      }, 100);
 
-    if (!hasScript) {
-      const script = document.createElement("script");
-      script.id = "cf-turnstile-script";
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      script.onload = () => renderWidget();
-      script.onerror = () => {
+      const onEnvReady = () => {
         if (!isMounted) return;
-        if (isDev) {
-          setStatus("bypassed");
-          onVerifyRef.current?.("XXXX.DEV_BYPASS_SCRIPT_ERR");
-        } else {
-          setStatus("error");
-          setErrorMessage("Gagal mengunduh skrip Cloudflare Turnstile.");
+        const resolved = resolveKey();
+        if (resolved) {
+          if (keyPollInterval) clearInterval(keyPollInterval);
+          keyPollInterval = null;
+          startTurnstile(resolved);
         }
       };
-      document.head.appendChild(script);
-    } else {
-      renderWidget();
+      window.addEventListener("public-env-ready", onEnvReady, { once: true });
     }
 
     return () => {
       isMounted = false;
       if (pollTimer) clearTimeout(pollTimer);
+      if (keyPollInterval) clearInterval(keyPollInterval);
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current);

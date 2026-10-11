@@ -119,8 +119,11 @@ const sitelinksJsonLd = {
     />
 
     <!-- Injeksi Konfigurasi Runtime Server ke Objek Global Browser -->
-    <script is:inline define:vars={{ publicConfig }}>
+    <script is:inline data-astro-rerun define:vars={{ publicConfig }}>
       window.__PUBLIC_ENV__ = Object.assign(window.__PUBLIC_ENV__ || {}, publicConfig);
+      try {
+        window.dispatchEvent(new CustomEvent("public-env-ready", { detail: window.__PUBLIC_ENV__ }));
+      } catch (_) {}
     </script>
 
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#006838" />

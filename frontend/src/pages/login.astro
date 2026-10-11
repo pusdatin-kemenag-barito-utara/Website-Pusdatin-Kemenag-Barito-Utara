@@ -5,6 +5,12 @@ import LoginPage from "@/components/auth/LoginPage";
 const title = "Login Admin - PUSDATIN Kemenag Barito Utara";
 const description = "Portal masuk aman autentikasi Single Sign-On (SSO) administrator dan operator PUSDATIN Kemenag Barito Utara.";
 const canonical = "/login";
+
+if (Astro.response) {
+  Astro.response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  Astro.response.headers.set("Pragma", "no-cache");
+  Astro.response.headers.set("Expires", "0");
+}
 ---
 
 <BaseLayout {title} {description} {canonical}>
