@@ -55,7 +55,7 @@ func (p *pbAnnouncement) toDomain() *domain.Announcement {
 
 func (s *Store) ListAnnouncements(ctx context.Context, search string) ([]*domain.Announcement, error) {
 	params := url.Values{}
-	params.Set("sort", "-is_important,+order_index,-created")
+	params.Set("sort", "-is_important,+order_index,-created_at")
 	params.Set("perPage", "500")
 
 	var records []pbAnnouncement
@@ -83,7 +83,7 @@ func (s *Store) ListAnnouncements(ctx context.Context, search string) ([]*domain
 func (s *Store) ListPublicAnnouncements(ctx context.Context) ([]*domain.Announcement, error) {
 	params := url.Values{}
 	params.Set("filter", "is_active = true")
-	params.Set("sort", "-is_important,+order_index,-created")
+	params.Set("sort", "-is_important,+order_index,-created_at")
 	params.Set("perPage", "500")
 
 	var records []pbAnnouncement

@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { motion, Variants } from "framer-motion";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
 interface LandingHeroContentProps {
@@ -7,57 +6,26 @@ interface LandingHeroContentProps {
     totalAppsCount: number;
     onlineAppsCount?: number;
     totalAnnouncements?: number;
-    totalAuditLogs?: number;
     superAdminCount?: number;
     systemHealthPercent?: number;
   };
 }
 
 export function LandingHeroContent({ stats }: LandingHeroContentProps) {
-  const safeStats = stats || {
-    totalAppsCount: 0,
-    onlineAppsCount: 0,
-    totalAnnouncements: 0,
-    totalAuditLogs: 0,
-    superAdminCount: 1,
-    systemHealthPercent: 100,
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.05,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    },
+  const safeStats = {
+    totalAppsCount: stats?.totalAppsCount || 11,
+    onlineAppsCount: stats?.onlineAppsCount || stats?.totalAppsCount || 11,
+    totalAnnouncements: stats?.totalAnnouncements || 3,
+    superAdminCount: stats?.superAdminCount || 1,
+    systemHealthPercent: stats?.systemHealthPercent || 100,
   };
 
   return (
     <>
       {/* Main Hero Content */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 flex-1 flex flex-col items-center justify-center text-center my-auto"
-      >
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center my-auto">
         {/* Logo */}
-        <motion.img
-          variants={itemVariants}
+        <img
           src="/branding/pusdatin.png"
           alt="Logo PUSDATIN"
           fetchPriority="high"
@@ -65,31 +33,22 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
         />
 
         {/* Title */}
-        <motion.h1
-          variants={itemVariants}
-          className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-2 pb-2 leading-tight drop-shadow-lg bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent"
-        >
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-2 pb-2 leading-tight drop-shadow-lg bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
           Pusat Data dan Teknologi Informasi
-        </motion.h1>
+        </h1>
 
         {/* Subtitle */}
-        <motion.p
-          variants={itemVariants}
-          className="text-base sm:text-lg font-medium text-emerald-400 mb-3 drop-shadow"
-        >
+        <p className="text-base sm:text-lg font-medium text-emerald-400 mb-3 drop-shadow">
           Kementerian Agama Kabupaten Barito Utara
-        </motion.p>
+        </p>
 
         {/* Description */}
-        <motion.p
-          variants={itemVariants}
-          className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed mb-6"
-        >
+        <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed mb-6">
           Pusat monitoring, integrasi aplikasi layanan publik dan internal, serta pengumuman resmi Kementerian Agama Kabupaten Barito Utara.
-        </motion.p>
+        </p>
 
         {/* Buttons */}
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
           <a
             href="/layanan"
             className="inline-flex items-center gap-2 bg-[#006838] hover:bg-[#005530] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-emerald-950/50 hover:scale-[1.02] active:scale-[0.98]"
@@ -103,20 +62,19 @@ export function LandingHeroContent({ stats }: LandingHeroContentProps) {
           >
             Tentang PUSDATIN
           </a>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Integrated Floating Stats Bar */}
       <div className="relative z-10 w-full max-w-6xl mx-auto mt-8">
         <div className="rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800/80 p-4 sm:p-6 shadow-2xl shadow-slate-950/80">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 text-center">
             {[
               { label: "Sistem Terintegrasi", value: safeStats.totalAppsCount },
-              { label: "Aplikasi Online", value: safeStats.onlineAppsCount || safeStats.totalAppsCount },
-              { label: "Pengumuman Resmi", value: safeStats.totalAnnouncements || 0 },
-              { label: "Audit Aktivitas", value: safeStats.totalAuditLogs || 0 },
-              { label: "Super Admin", value: safeStats.superAdminCount || 1 },
-              { label: "Keandalan Sistem (%)", value: safeStats.systemHealthPercent || 100 },
+              { label: "Aplikasi Online", value: safeStats.onlineAppsCount },
+              { label: "Pengumuman Resmi", value: safeStats.totalAnnouncements },
+              { label: "Super Admin", value: safeStats.superAdminCount },
+              { label: "Keandalan Sistem (%)", value: safeStats.systemHealthPercent },
             ].map((item, i) => (
               <div
                 key={i}

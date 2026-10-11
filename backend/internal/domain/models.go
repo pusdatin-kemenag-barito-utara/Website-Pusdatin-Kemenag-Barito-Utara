@@ -48,43 +48,6 @@ type App struct {
 	CreatedAt         string  `json:"createdAt"`
 }
 
-// AuditLog represents an audit trail event.
-type AuditLog struct {
-	ID           string         `json:"id"`
-	Action       string         `json:"action"`
-	Target       string         `json:"target"`
-	TargetSchema *string        `json:"targetSchema"`
-	PerformedBy  string         `json:"performedBy"`
-	BeforeState  map[string]any `json:"beforeState"`
-	AfterState   map[string]any `json:"afterState"`
-	IP           *string        `json:"ip"`
-	Timestamp    string         `json:"timestamp"`
-}
-
-// AuditFilter holds filter options for querying audit logs.
-type AuditFilter struct {
-	Action       string
-	TargetSchema string
-	StartDate    string
-	EndDate      string
-	Search       string
-	Limit        int
-	Offset       int
-}
-
-// ActivityPoint represents aggregate activity on a specific date.
-type ActivityPoint struct {
-	Date  string `json:"date"`
-	Count int    `json:"count"`
-}
-
-// AppSummaryItem represents audit event counts per satellite app schema.
-type AppSummaryItem struct {
-	AppName string `json:"appName"`
-	Count   int64  `json:"count"`
-	Color   string `json:"color"`
-}
-
 // DashboardStats holds counts and totals for dashboard widgets.
 type DashboardStats struct {
 	TotalApps          int64 `json:"totalApps"`
@@ -100,7 +63,6 @@ type LandingStats struct {
 	TotalAppsCount      int64 `json:"totalAppsCount"`
 	OnlineAppsCount     int64 `json:"onlineAppsCount"`
 	TotalAnnouncements  int64 `json:"totalAnnouncements"`
-	TotalAuditLogs      int64 `json:"totalAuditLogs"`
 	SuperAdminCount     int64 `json:"superAdminCount"`
 	SystemHealthPercent int64 `json:"systemHealthPercent"`
 }

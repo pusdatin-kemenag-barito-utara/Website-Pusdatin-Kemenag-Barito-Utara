@@ -211,30 +211,42 @@ const sitelinksJsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(sitelinksJsonLd)} is:inline />
 
     <!-- Enterprise PWA Service Worker Registration -->
-    <script is:inline>
-      if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost")) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/sw.js")
-            .then((reg) => {
-              // Check for updates periodically
-              reg.onupdatefound = () => {
-                const installingWorker = reg.installing;
-                if (installingWorker) {
-                  installingWorker.onstatechange = () => {
-                    if (installingWorker.state === "installed" && navigator.serviceWorker.controller) {
-                      console.log("[PWA] Update PUSDATIN Service Worker tersedia.");
-                    }
-                  };
-                }
-              };
-            })
-            .catch((err) => {
-              console.debug("[PWA] Service Worker registration:", err);
-            });
-        });
-      }
-    </script>
+    {import.meta.env.PROD ? (
+      <script is:inline>
+        if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost")) {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker
+              .register("/sw.js")
+              .then((reg) => {
+                // Check for updates periodically
+                reg.onupdatefound = () => {
+                  const installingWorker = reg.installing;
+                  if (installingWorker) {
+                    installingWorker.onstatechange = () => {
+                      if (installingWorker.state === "installed" && navigator.serviceWorker.controller) {
+                        console.log("[PWA] Update PUSDATIN Service Worker tersedia.");
+                      }
+                    };
+                  }
+                };
+              })
+              .catch((err) => {
+                console.debug("[PWA] Service Worker registration:", err);
+              });
+          });
+        }
+      </script>
+    ) : (
+      <script is:inline>
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (const registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+      </script>
+    )}
 
     <GoogleAnalytics />
     <CloudflareInsights />

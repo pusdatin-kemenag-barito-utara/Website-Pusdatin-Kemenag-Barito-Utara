@@ -37,12 +37,13 @@ func main() {
 	tdService := auth.NewTrustedDeviceService(store, cfg.TrustedDeviceSecret)
 
 	// 3. Initialize Domain Services (Use-Cases)
-	authService := services.NewAuthService(cfg, store, store, store, authClient, turnstile, tdService)
-	appService := services.NewAppService(store, store)
-	reportService := services.NewReportService(store, store, store, store)
+	cfService := services.NewCloudflareService(cfg)
+	authService := services.NewAuthService(cfg, store, store, authClient, turnstile, tdService)
+	appService := services.NewAppService(cfg, store, cfService)
+	statsService := services.NewStatsService(store, store, store)
 	systemService := services.NewSystemService(store)
 	storageService := services.NewStorageService(cfg)
-	announcementService := services.NewAnnouncementService(store, store)
+	announcementService := services.NewAnnouncementService(store)
 	backupService := services.NewBackupService(cfg, store, storageService)
 
 	// 4. Background Daemons (Metrics Monitor & Midnight Backup Scheduler)
@@ -53,7 +54,7 @@ func main() {
 	h := &router.Handlers{
 		Auth:         handlers.NewAuthHandler(cfg, authService),
 		App:          handlers.NewAppHandler(appService),
-		Report:       handlers.NewReportHandler(reportService),
+		Stats:        handlers.NewStatsHandler(statsService),
 		System:       handlers.NewSystemHandler(systemService),
 		Storage:      handlers.NewStorageHandler(storageService),
 		Announcement: handlers.NewAnnouncementHandler(announcementService),

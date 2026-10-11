@@ -16,7 +16,6 @@ type AuthService struct {
 	cfg      *config.Config
 	userRepo domain.UserRepository
 	tdRepo   domain.TrustedDeviceRepository
-	auditRepo domain.AuditRepository
 	idp      domain.IdentityProvider
 	verifier domain.TurnstileVerifier
 	td       *auth.TrustedDeviceService
@@ -26,7 +25,6 @@ func NewAuthService(
 	cfg *config.Config,
 	userRepo domain.UserRepository,
 	tdRepo domain.TrustedDeviceRepository,
-	auditRepo domain.AuditRepository,
 	idp domain.IdentityProvider,
 	verifier domain.TurnstileVerifier,
 	td *auth.TrustedDeviceService,
@@ -35,7 +33,6 @@ func NewAuthService(
 		cfg:       cfg,
 		userRepo:  userRepo,
 		tdRepo:    tdRepo,
-		auditRepo: auditRepo,
 		idp:       idp,
 		verifier:  verifier,
 		td:        td,
@@ -71,8 +68,6 @@ func (s *AuthService) Login(ctx context.Context, email, password, turnstileToken
 	if !sessionCtx.IsAdmin || sessionCtx.User == nil {
 		return nil, domain.ErrForbidden
 	}
-
-	_ = s.auditRepo.InsertAuditLog(ctx, "INSERT", "login:"+email, "kemenag_pusdatin", sessionCtx.User.Email, nil, nil, clientIP)
 
 	mfaEnrolled := false
 	mfaFactorID := ""

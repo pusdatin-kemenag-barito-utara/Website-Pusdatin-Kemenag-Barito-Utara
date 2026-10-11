@@ -122,12 +122,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const status = response.status;
     const statusIcon = status >= 200 && status < 300 ? "🟢" : status >= 300 && status < 400 ? "🟡" : "🔴";
     const durationColor = duration < 100 ? "\x1b[32m" : duration < 500 ? "\x1b[33m" : "\x1b[31m";
+    const methodStr = context.request.method.padEnd(5);
+    const pathStr = pathname.padEnd(25);
+    const durStr = `${duration}ms`.padStart(6);
+    const roleStr = hasAuthSession ? "\x1b[32mSuperAdmin\x1b[0m" : "\x1b[90mPublic\x1b[0m";
+
     console.log(
-      `\x1b[90m[${new Date().toTimeString().split(" ")[0]}]\x1b[0m ${statusIcon} \x1b[1m${status}\x1b[0m | \x1b[36m%-4s\x1b[0m \x1b[1m%-24s\x1b[0m | ${durationColor}%4dms\x1b[0m | %s`,
-      context.request.method,
-      pathname,
-      duration,
-      hasAuthSession ? "\x1b[32mSuperAdmin\x1b[0m" : "\x1b[90mPublic\x1b[0m"
+      `\x1b[90m[${new Date().toTimeString().split(" ")[0]}]\x1b[0m ${statusIcon} \x1b[1m${status}\x1b[0m | \x1b[36m${methodStr}\x1b[0m \x1b[1m${pathStr}\x1b[0m | ${durationColor}${durStr}\x1b[0m | ${roleStr}`
     );
   }
 

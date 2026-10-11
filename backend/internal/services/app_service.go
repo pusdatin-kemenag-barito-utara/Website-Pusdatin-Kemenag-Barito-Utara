@@ -2,19 +2,25 @@ package services
 
 import (
 	"context"
+	"log"
+	"strings"
+	"time"
 
+	"pusdatin/backend/internal/config"
 	"pusdatin/backend/internal/domain"
 )
 
 type AppService struct {
+	cfg       *config.Config
 	appRepo   domain.AppRepository
-	auditRepo domain.AuditRepository
+	cfService *CloudflareService
 }
 
-func NewAppService(appRepo domain.AppRepository, auditRepo domain.AuditRepository) *AppService {
+func NewAppService(cfg *config.Config, appRepo domain.AppRepository, cfService *CloudflareService) *AppService {
 	return &AppService{
+		cfg:       cfg,
 		appRepo:   appRepo,
-		auditRepo: auditRepo,
+		cfService: cfService,
 	}
 }
 
@@ -85,10 +91,6 @@ func (s *AppService) CreateApp(ctx context.Context, actorEmail, clientIP string,
 		return nil, err
 	}
 
-	_ = s.auditRepo.InsertAuditLog(ctx, "INSERT", "app:"+req.Name, "kemenag_pusdatin", actorEmail, nil, map[string]any{
-		"id": req.ID, "name": req.Name, "schemaName": req.Schema, "status": status,
-	}, clientIP)
-
 	created, err := s.appRepo.GetApp(ctx, req.ID)
 	if err != nil {
 		created = app
@@ -101,12 +103,10 @@ func (s *AppService) UpdateApp(ctx context.Context, actorEmail, clientIP, id str
 		return domain.ErrInvalidInput
 	}
 
-	before, _ := s.appRepo.GetApp(ctx, id)
 	if err := s.appRepo.UpdateApp(ctx, id, fields); err != nil {
 		return err
 	}
 
-	_ = s.auditRepo.InsertAuditLog(ctx, "UPDATE", "app:"+id, "kemenag_pusdatin", actorEmail, flattenAppBefore(before, fields), fields, clientIP)
 	return nil
 }
 
@@ -115,17 +115,35 @@ func (s *AppService) UpdateAppStatus(ctx context.Context, actorEmail, clientIP, 
 		return domain.ErrInvalidInput
 	}
 
-	app, err := s.appRepo.GetApp(ctx, id)
-	if err != nil {
-		return domain.ErrNotFound
-	}
+	app, _ := s.appRepo.GetApp(ctx, id)
 
 	if err := s.appRepo.UpdateAppStatus(ctx, id, status); err != nil {
 		return err
 	}
 
-	oldStatus := app.Status
-	_ = s.auditRepo.InsertAuditLog(ctx, "UPDATE", "app:"+app.Name, "kemenag_pusdatin", actorEmail, map[string]any{"status": oldStatus}, map[string]any{"status": status}, clientIP)
+	if s.cfService != nil && app != nil && app.URL != nil {
+		host := ExtractHost(*app.URL)
+		if s.cfService.IsCloudflareManaged(host) {
+			go func() {
+				bgCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+				defer cancel()
+				if err := s.cfService.SyncAppMaintenance(bgCtx, host, app.Name, status == "maintenance"); err != nil {
+					log.Printf("⚠️ [AppService] Gagal sync Cloudflare untuk %s: %v", host, err)
+				}
+			}()
+		} else if strings.Contains(host, "baritoutara.kemenag.go.id") {
+			targetDB := "https://db-website.kemenag-baritoutara.com"
+			if app.SchemaURL != nil && *app.SchemaURL != "" && strings.HasPrefix(*app.SchemaURL, "http") {
+				targetDB = *app.SchemaURL
+			}
+			go func() {
+				bgCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+				defer cancel()
+				_ = s.cfService.SyncWebsiteDatabase(bgCtx, targetDB, s.cfg.PocketBaseAdminEmail, s.cfg.PocketBaseAdminPassword, status)
+			}()
+		}
+	}
+
 	return nil
 }
 
@@ -134,11 +152,31 @@ func (s *AppService) BulkUpdateAppStatus(ctx context.Context, actorEmail, client
 		return domain.ErrInvalidInput
 	}
 
+	apps, _ := s.appRepo.ListApps(ctx)
+
 	if err := s.appRepo.UpdateAllAppsStatus(ctx, status); err != nil {
 		return err
 	}
 
-	_ = s.auditRepo.InsertAuditLog(ctx, "UPDATE", "app:all", "kemenag_pusdatin", actorEmail, map[string]any{"status": "mixed"}, map[string]any{"status": status}, clientIP)
+	if s.cfService != nil && len(apps) > 0 {
+		go func() {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			if err := s.cfService.SyncBulkMaintenance(bgCtx, apps, status); err != nil {
+				log.Printf("⚠️ [AppService] Gagal bulk sync Cloudflare: %v", err)
+			}
+			for _, a := range apps {
+				if a != nil && a.URL != nil && strings.Contains(*a.URL, "baritoutara.kemenag.go.id") {
+					targetDB := "https://db-website.kemenag-baritoutara.com"
+					if a.SchemaURL != nil && *a.SchemaURL != "" && strings.HasPrefix(*a.SchemaURL, "http") {
+						targetDB = *a.SchemaURL
+					}
+					_ = s.cfService.SyncWebsiteDatabase(bgCtx, targetDB, s.cfg.PocketBaseAdminEmail, s.cfg.PocketBaseAdminPassword, status)
+				}
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -147,16 +185,10 @@ func (s *AppService) DeleteApp(ctx context.Context, actorEmail, clientIP, id str
 		return domain.ErrInvalidInput
 	}
 
-	app, _ := s.appRepo.GetApp(ctx, id)
 	if err := s.appRepo.DeleteApp(ctx, id); err != nil {
 		return err
 	}
 
-	name := id
-	if app != nil {
-		name = app.Name
-	}
-	_ = s.auditRepo.InsertAuditLog(ctx, "DELETE", "app:"+name, "kemenag_pusdatin", actorEmail, map[string]any{"id": id}, nil, clientIP)
 	return nil
 }
 

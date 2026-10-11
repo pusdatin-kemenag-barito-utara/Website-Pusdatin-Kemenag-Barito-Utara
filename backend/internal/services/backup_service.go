@@ -99,6 +99,16 @@ func (s *BackupService) GetStatus(ctx context.Context) (*domain.BackupSystemStat
 	snapshots, err := s.ListSnapshots(ctx)
 	if err == nil {
 		totalSnapshots = len(snapshots)
+		if latestManifest == nil && len(snapshots) > 0 {
+			latestManifest = snapshots[0].Manifest
+			if lastBackupAtStr == nil && snapshots[0].Timestamp != "" {
+				ts := snapshots[0].Timestamp
+				lastBackupAtStr = &ts
+			}
+			if (lastState == "" || lastState == "idle") && snapshots[0].Status != "" {
+				lastState = snapshots[0].Status
+			}
+		}
 	}
 
 	return &domain.BackupSystemStatus{
@@ -149,7 +159,6 @@ func (s *BackupService) RunBackup(ctx context.Context, triggeredBy string) (*dom
 
 	collections := []string{
 		"announcements",
-		"audit_logs",
 		"login_attempts",
 		"profiles",
 		"ptsp_activity_logs",

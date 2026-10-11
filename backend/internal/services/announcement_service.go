@@ -8,14 +8,12 @@ import (
 )
 
 type AnnouncementService struct {
-	repo      domain.AnnouncementRepository
-	auditRepo domain.AuditRepository
+	repo domain.AnnouncementRepository
 }
 
-func NewAnnouncementService(repo domain.AnnouncementRepository, auditRepo domain.AuditRepository) *AnnouncementService {
+func NewAnnouncementService(repo domain.AnnouncementRepository) *AnnouncementService {
 	return &AnnouncementService{
-		repo:      repo,
-		auditRepo: auditRepo,
+		repo: repo,
 	}
 }
 
@@ -73,9 +71,6 @@ func (s *AnnouncementService) CreateAnnouncement(ctx context.Context, actorEmail
 		return nil, err
 	}
 
-	_ = s.auditRepo.InsertAuditLog(ctx, "CREATE", "announcement:"+a.ID, "kemenag_pusdatin",
-		actorEmail, nil, a, clientIP)
-
 	return a, nil
 }
 
@@ -118,24 +113,17 @@ func (s *AnnouncementService) UpdateAnnouncement(ctx context.Context, actorEmail
 		return nil, err
 	}
 
-	_ = s.auditRepo.InsertAuditLog(ctx, "UPDATE", "announcement:"+id, "kemenag_pusdatin",
-		actorEmail, existing, updated, clientIP)
-
 	return updated, nil
 }
 
 func (s *AnnouncementService) DeleteAnnouncement(ctx context.Context, actorEmail, clientIP, id string) error {
-	existing, err := s.repo.GetAnnouncement(ctx, id)
-	if err != nil {
+	if _, err := s.repo.GetAnnouncement(ctx, id); err != nil {
 		return domain.ErrNotFound
 	}
 
 	if err := s.repo.DeleteAnnouncement(ctx, id); err != nil {
 		return err
 	}
-
-	_ = s.auditRepo.InsertAuditLog(ctx, "DELETE", "announcement:"+id, "kemenag_pusdatin",
-		actorEmail, existing, nil, clientIP)
 
 	return nil
 }

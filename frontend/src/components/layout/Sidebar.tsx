@@ -3,8 +3,6 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Monitor,
-  Shield,
-  BarChart3,
   LogOut,
   X,
   Server,
@@ -15,8 +13,6 @@ import {
 const navItems = [
   { href: "/dashboard/apps", label: "Aplikasi", icon: Monitor },
   { href: "/dashboard/announcements", label: "Pengumuman", icon: Megaphone },
-  { href: "/dashboard/audit", label: "Audit Log", icon: Shield },
-  { href: "/dashboard/reports", label: "Laporan", icon: BarChart3 },
   { href: "/dashboard/infrastructure", label: "Infrastruktur", icon: Server },
   { href: "/dashboard/backup", label: "Backup Database", icon: Database },
 ];

@@ -22,14 +22,14 @@ const servicesList = [
   {
     icon: KeyRound,
     title: "Portal Super Admin",
-    desc: "Manajemen kontrol terpusat untuk konfigurasi aplikasi, pengumuman resmi, dan audit log sistem.",
+    desc: "Manajemen kontrol terpusat untuk konfigurasi aplikasi, pengumuman resmi, dan pencadangan database sistem.",
     badge: "Keamanan",
     color: "from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
   },
   {
     icon: BarChart3,
     title: "Monitoring Real-Time",
-    desc: "Dashboard eksekutif untuk memantau performa, trafik, dan log audit penggunaan aplikasi secara langsung.",
+    desc: "Dashboard eksekutif untuk memantau performa, utilisasi server, dan stabilitas layanan aplikasi secara langsung.",
     badge: "Analitik",
     color: "from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
   },

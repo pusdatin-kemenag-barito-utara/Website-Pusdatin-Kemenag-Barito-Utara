@@ -25,17 +25,6 @@ export interface SateliteApp {
   availableFeatures?: { id: string, label: string }[];
 }
 
-export interface AuditLog {
-  id: string;
-  timestamp: string;
-  action: "INSERT" | "UPDATE" | "DELETE";
-  target: string;
-  targetSchema: string;
-  performedBy: string;
-  beforeState: Record<string, unknown> | null;
-  afterState: Record<string, unknown> | null;
-}
-
 export interface SystemHealth {
   cpu: number;
   ram: number;
@@ -55,17 +44,6 @@ export interface DashboardStats {
   totalLogs: number;
   todayLogs: number;
   superAdminCount: number;
-}
-
-export interface ReportData {
-  appName: string;
-  count: number;
-  color: string;
-}
-
-export interface ActivityData {
-  date: string;
-  count: number;
 }
 
 export interface Announcement {

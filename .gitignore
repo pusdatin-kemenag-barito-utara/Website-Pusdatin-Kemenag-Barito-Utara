@@ -52,15 +52,12 @@ dist/
 .turbo/
 .eslintcache
 
-# --- PWA & Auto-Generated Service Workers ---
-public/sw.js
-public/sw.js.map
+# --- PWA Auto-Generated Workbox Files ---
+*.sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
 public/fallback-*.js
 public/swe-worker-*.js
-frontend/public/sw.js
-frontend/public/sw.js.map
 frontend/public/workbox-*.js
 frontend/public/workbox-*.js.map
 

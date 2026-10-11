@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { Database, HardDrive, Files, RefreshCcw, Cpu, MemoryStick, Activity, Network, Clock, Server, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
+import { Database, HardDrive, Files, RefreshCcw, Cpu, MemoryStick, Activity, Network, Clock, Server, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { api } from "@/lib/api-client";
 import {
@@ -302,7 +302,7 @@ export function InfrastructurePage() {
             </CardBody>
           </Card>
 
-          {/* SERVICE 2: DATABASE POSTGRESQL */}
+          {/* SERVICE 2: POCKETBASE PRIMARY DATABASE */}
           <Card className="border-l-4 border-l-emerald-500">
             <CardBody>
               <div className="flex items-start justify-between">
@@ -311,14 +311,14 @@ export function InfrastructurePage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     TERHUBUNG
                   </span>
-                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">PostgreSQL Database</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Primary Store & Connection Pool</p>
+                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">PocketBase Database</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Primary Store & Real-time API</p>
                 </div>
-                <Database className="h-5 w-5 text-indigo-500" />
+                <Database className="h-5 w-5 text-emerald-500" />
               </div>
               <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between text-xs text-slate-500">
-                <span>Schema: kemenag_pusdatin</span>
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">Pool: Normal</span>
+                <span>Host: db-pusdatin</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">8 Koleksi Aktif</span>
               </div>
             </CardBody>
           </Card>
@@ -344,7 +344,7 @@ export function InfrastructurePage() {
             </CardBody>
           </Card>
 
-          {/* SERVICE 4: POCKETBASE DATABASE & AUTH */}
+          {/* SERVICE 4: CLOUDFLARE TURNSTILE & SECURITY */}
           <Card className="border-l-4 border-l-emerald-500">
             <CardBody>
               <div className="flex items-start justify-between">
@@ -353,14 +353,14 @@ export function InfrastructurePage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     AKTIF
                   </span>
-                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">PocketBase Database & Auth</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Primary DB & Admin Auth Engine</p>
+                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">Cloudflare Turnstile</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Edge Security & Bot Defense</p>
                 </div>
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
               </div>
               <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between text-xs text-slate-500">
-                <span>Database: db-pusdatin</span>
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">Session: Active</span>
+                <span>Security: Infisical EV</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">Status: Enforced</span>
               </div>
             </CardBody>
           </Card>
@@ -462,7 +462,7 @@ export function InfrastructurePage() {
                   <tr>
                     <td colSpan={3} className="px-6 py-8 text-center text-red-500">
                       <p>Gagal memuat data R2.</p>
-                      <p className="text-xs mt-1 text-red-400">Pastikan API token Cloudflare sudah diset di .env.local</p>
+                      <p className="text-xs mt-1 text-red-400">Pastikan kredensial Cloudflare R2 sudah terkonfigurasi di Infisical Cloud.</p>
                     </td>
                   </tr>
                 )}

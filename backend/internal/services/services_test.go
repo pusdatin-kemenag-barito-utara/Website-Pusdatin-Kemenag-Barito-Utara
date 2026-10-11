@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"pusdatin/backend/internal/config"
 	"pusdatin/backend/internal/domain"
 )
 
@@ -94,40 +95,11 @@ func (m *mockAppRepo) DeleteApp(ctx context.Context, id string) error {
 	return nil
 }
 
-type mockAuditRepo struct {
-	logs []domain.AuditLog
-}
-
-func (m *mockAuditRepo) ListAuditLogs(ctx context.Context, f domain.AuditFilter) ([]domain.AuditLog, int64, error) {
-	return m.logs, int64(len(m.logs)), nil
-}
-
-func (m *mockAuditRepo) DeleteAuditLogs(ctx context.Context, targetSchema string) (int64, error) {
-	count := int64(len(m.logs))
-	m.logs = nil
-	return count, nil
-}
-
-func (m *mockAuditRepo) DeleteAuditLogsBatch(ctx context.Context, ids []string) (int64, error) {
-	count := int64(len(ids))
-	return count, nil
-}
-
-func (m *mockAuditRepo) InsertAuditLog(ctx context.Context, action, target, targetSchema, performedBy string, before, after any, ip string) error {
-	m.logs = append(m.logs, domain.AuditLog{
-		Action:      action,
-		Target:      target,
-		PerformedBy: performedBy,
-	})
-	return nil
-}
-
 func TestAppServiceCreateAndStatus(t *testing.T) {
 	ctx := context.Background()
 	appRepo := newMockAppRepo()
-	auditRepo := &mockAuditRepo{}
 
-	service := NewAppService(appRepo, auditRepo)
+	service := NewAppService(&config.Config{}, appRepo, nil)
 
 	// Test validation error
 	_, err := service.CreateApp(ctx, "admin@kemenag.go.id", "127.0.0.1", CreateAppInput{})

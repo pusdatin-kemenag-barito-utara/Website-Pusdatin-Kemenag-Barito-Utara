@@ -27,18 +27,8 @@ type AppRepository interface {
 	DeleteApp(ctx context.Context, id string) error
 }
 
-// AuditRepository specifies data access operations for system audit trails.
-type AuditRepository interface {
-	ListAuditLogs(ctx context.Context, f AuditFilter) ([]AuditLog, int64, error)
-	DeleteAuditLogs(ctx context.Context, targetSchema string) (int64, error)
-	DeleteAuditLogsBatch(ctx context.Context, ids []string) (int64, error)
-	InsertAuditLog(ctx context.Context, action, target, targetSchema, performedBy string, before, after any, ip string) error
-}
-
-// ReportRepository specifies data access operations for aggregate statistics.
-type ReportRepository interface {
-	ReportActivity(ctx context.Context, days int) ([]ActivityPoint, error)
-	ReportAppSummary(ctx context.Context) ([]AppSummaryItem, error)
+// StatsRepository specifies data access operations for aggregate statistics and dashboard metrics.
+type StatsRepository interface {
 	DashboardStats(ctx context.Context) (*DashboardStats, error)
 }
 

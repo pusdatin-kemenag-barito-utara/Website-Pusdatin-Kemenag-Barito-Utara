@@ -301,15 +301,15 @@ export function BackupPage() {
               <Server className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                  Matriks Skema Database Terproteksi (Snapshot Terkini)
+                  Matriks Koleksi & Skema Terproteksi (Snapshot Terkini)
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Setiap tabel baru di skema apapun secara otomatis terdeteksi dan tercadangkan ke file SQL independen
+                  Setiap koleksi database PocketBase secara otomatis tercadangkan ke berkas SQL independen
                 </p>
               </div>
             </div>
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              {latestManifest.schemas.length} Skema Terdeteksi
+              {latestManifest.schemas.length} Koleksi / Skema Terdeteksi
             </span>
           </CardHeader>
           <CardBody className="pt-4">
@@ -325,7 +325,7 @@ export function BackupPage() {
                         {sc.schemaName}
                       </span>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        {sc.tableCount} Tabel • {sc.rowCount.toLocaleString("id-ID")} Baris
+                        {sc.tableCount > 1 ? `${sc.tableCount} Tabel` : "Koleksi Data"} • {sc.rowCount.toLocaleString("id-ID")} Baris
                       </p>
                     </div>
                     <FileCode2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />

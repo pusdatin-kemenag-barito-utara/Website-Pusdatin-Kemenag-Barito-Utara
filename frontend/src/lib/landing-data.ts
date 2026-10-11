@@ -5,7 +5,6 @@ interface LandingData {
     totalAppsCount: number;
     onlineAppsCount: number;
     totalAnnouncements: number;
-    totalAuditLogs: number;
     superAdminCount: number;
     systemHealthPercent: number;
   };
@@ -14,10 +13,9 @@ interface LandingData {
 
 const fallbackData: LandingData = {
   stats: {
-    totalAppsCount: 0,
-    onlineAppsCount: 0,
-    totalAnnouncements: 0,
-    totalAuditLogs: 0,
+    totalAppsCount: 11,
+    onlineAppsCount: 11,
+    totalAnnouncements: 3,
     superAdminCount: 1,
     systemHealthPercent: 100,
   },
@@ -43,7 +41,7 @@ async function fetchFromPocketBase(): Promise<LandingData | null> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
 
-    const [appsRes, onlineRes, announcementsRes, auditRes, profilesRes] = await Promise.all([
+    const [appsRes, onlineRes, announcementsRes, profilesRes] = await Promise.all([
       fetch(`${pbUrl}/api/collections/satellite_apps/records?perPage=50&sort=sort_order`, {
         signal: controller.signal,
       }),
@@ -51,9 +49,6 @@ async function fetchFromPocketBase(): Promise<LandingData | null> {
         signal: controller.signal,
       }),
       fetch(`${pbUrl}/api/collections/announcements/records?perPage=1&filter=is_active%3Dtrue`, {
-        signal: controller.signal,
-      }),
-      fetch(`${pbUrl}/api/collections/audit_logs/records?perPage=1`, {
         signal: controller.signal,
       }),
       fetch(`${pbUrl}/api/collections/profiles/records?perPage=1&filter=role%3D%27super_admin%27`, {
@@ -65,13 +60,11 @@ async function fetchFromPocketBase(): Promise<LandingData | null> {
     const appsJson = appsRes.ok ? await appsRes.json() : null;
     const onlineJson = onlineRes.ok ? await onlineRes.json() : null;
     const annJson = announcementsRes.ok ? await announcementsRes.json() : null;
-    const auditJson = auditRes.ok ? await auditRes.json() : null;
     const profJson = profilesRes.ok ? await profilesRes.json() : null;
 
     const totalAppsCount = appsJson?.totalItems ?? 0;
     const onlineAppsCount = onlineJson?.totalItems ?? totalAppsCount;
     const totalAnnouncements = annJson?.totalItems ?? 0;
-    const totalAuditLogs = auditJson?.totalItems ?? 0;
     const superAdminCount = profJson?.totalItems ?? 1;
 
     const rawItems = appsJson?.items ?? [];
@@ -93,7 +86,6 @@ async function fetchFromPocketBase(): Promise<LandingData | null> {
         totalAppsCount,
         onlineAppsCount,
         totalAnnouncements,
-        totalAuditLogs,
         superAdminCount,
         systemHealthPercent: 100,
       },
@@ -116,7 +108,7 @@ export async function getLandingData(): Promise<LandingData> {
     (typeof process !== "undefined" && process.env?.BACKEND_URL) || "http://127.0.0.1:8080";
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1500);
+    const timeout = setTimeout(() => controller.abort(), 3500);
     const res = await fetch(`${backendUrl}/api/landing/stats`, {
       signal: controller.signal,
     });

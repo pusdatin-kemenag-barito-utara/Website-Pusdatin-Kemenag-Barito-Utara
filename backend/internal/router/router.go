@@ -11,7 +11,7 @@ import (
 type Handlers struct {
 	Auth         *handlers.AuthHandler
 	App          *handlers.AppHandler
-	Report       *handlers.ReportHandler
+	Stats        *handlers.StatsHandler
 	System       *handlers.SystemHandler
 	Storage      *handlers.StorageHandler
 	Announcement *handlers.AnnouncementHandler
@@ -26,7 +26,7 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	})
 	app.Get("/api/health", h.System.HealthHandler)
 	app.Get("/health", h.System.HealthHandler)
-	app.Get("/api/landing/stats", h.Report.LandingStatsHandler)
+	app.Get("/api/landing/stats", h.Stats.LandingStatsHandler)
 	app.Get("/api/announcements", h.Announcement.ListPublic)
 	app.Get("/uploads/apps/:file", h.Storage.UploadsProxy)
 	app.Get("/uploads/*", h.Storage.UploadsProxy)
@@ -42,16 +42,10 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	// Protected group (admin only)
 	admin := app.Group("/api", middleware.AuthMiddleware(authService), middleware.AdminRequired())
 
-	// System & Reports
+	// System & Stats
 	admin.Get("/system/health", h.System.SystemHealth)
 	admin.Get("/system/realtime", h.System.RealtimeMetrics)
-	admin.Get("/dashboard/stats", h.Report.DashboardStats)
-	admin.Get("/reports/activity", h.Report.ReportActivity)
-	admin.Get("/reports/app-summary", h.Report.ReportAppSummary)
-
-	// Audit Logs
-	admin.Get("/audit-logs", h.Report.ListAuditLogs)
-	admin.Delete("/audit-logs", h.Report.DeleteAuditLogs)
+	admin.Get("/dashboard/stats", h.Stats.DashboardStats)
 
 	// App Management
 	admin.Get("/apps", h.App.ListApps)

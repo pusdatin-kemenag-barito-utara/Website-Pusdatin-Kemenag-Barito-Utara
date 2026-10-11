@@ -1,9 +1,11 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -24,6 +26,7 @@ type Config struct {
 
 	CloudflareAccountID string
 	CloudflareAPIToken  string
+	CloudflareZoneID    string
 
 	R2AccessKeyID     string
 	R2SecretAccessKey string
@@ -53,6 +56,17 @@ func Load() (*Config, error) {
 	_ = godotenv.Load(".env")
 
 	env := getEnv("NODE_ENV", getEnv("APP_ENV", "development"))
+	infEnv := "dev"
+	if env == "production" || env == "prod" {
+		infEnv = "prod"
+	}
+
+	// Always sync fresh secrets from Infisical if critical secrets are missing in process env
+	if os.Getenv("CLOUDFLARE_ZONE_ID") == "" || os.Getenv("CLOUDFLARE_API_TOKEN") == "" {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		_, _ = FetchSecretsFromInfisical(ctx, infEnv)
+		cancel()
+	}
 
 	pbURL := getEnv("POCKETBASE_URL", os.Getenv("PUBLIC_POCKETBASE_URL"))
 	pbAdminEmail := getEnv("POCKETBASE_ADMIN_EMAIL", os.Getenv("SUPER_ADMIN_EMAIL"))
@@ -68,6 +82,7 @@ func Load() (*Config, error) {
 		SuperAdminEmail:         os.Getenv("SUPER_ADMIN_EMAIL"),
 		CloudflareAccountID:     os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
 		CloudflareAPIToken:      os.Getenv("CLOUDFLARE_API_TOKEN"),
+		CloudflareZoneID:        os.Getenv("CLOUDFLARE_ZONE_ID"),
 		R2AccessKeyID:           os.Getenv("R2_ACCESS_KEY_ID"),
 		R2SecretAccessKey:       os.Getenv("R2_SECRET_ACCESS_KEY"),
 		R2EndpointURL:           os.Getenv("R2_ENDPOINT_URL"),
@@ -95,6 +110,7 @@ func (c *Config) validate() error {
 		"SUPER_ADMIN_EMAIL":         c.SuperAdminEmail,
 		"CLOUDFLARE_ACCOUNT_ID":     c.CloudflareAccountID,
 		"CLOUDFLARE_API_TOKEN":      c.CloudflareAPIToken,
+		"CLOUDFLARE_ZONE_ID":        c.CloudflareZoneID,
 		"R2_ACCESS_KEY_ID":          c.R2AccessKeyID,
 		"R2_SECRET_ACCESS_KEY":      c.R2SecretAccessKey,
 		"R2_ENDPOINT_URL":           c.R2EndpointURL,
