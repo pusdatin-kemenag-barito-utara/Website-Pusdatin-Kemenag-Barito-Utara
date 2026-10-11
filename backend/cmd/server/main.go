@@ -25,17 +25,14 @@ func main() {
 
 	ctx := context.Background()
 
-	// 1. Initialize Database Repository (Adapter)
-	pool, err := database.New(ctx, cfg.DatabaseURL)
+	// 1. Initialize PocketBase Database Repository (Adapter)
+	store, err := database.NewStore(cfg.PocketBaseURL, cfg.PocketBaseAdminEmail, cfg.PocketBaseAdminPassword)
 	if err != nil {
 		log.Fatalf("database: %v", err)
 	}
-	defer pool.Close()
-
-	store := database.NewStore(pool)
 
 	// 2. Initialize External Clients & Security Providers
-	authClient := auth.NewClient(cfg.SupabaseURL, cfg.SupabaseAnonKey, cfg.SupabaseServiceRoleKey)
+	authClient := auth.NewPBClient(cfg.PocketBaseURL, cfg.PocketBaseAdminEmail, cfg.PocketBaseAdminPassword)
 	turnstile := auth.NewTurnstileVerifier()
 	tdService := auth.NewTrustedDeviceService(store, cfg.TrustedDeviceSecret)
 
@@ -46,7 +43,7 @@ func main() {
 	systemService := services.NewSystemService(store)
 	storageService := services.NewStorageService(cfg)
 	announcementService := services.NewAnnouncementService(store, store)
-	backupService := services.NewBackupService(cfg, pool, storageService)
+	backupService := services.NewBackupService(cfg, store, storageService)
 
 	// 4. Background Daemons (Metrics Monitor & Midnight Backup Scheduler)
 	go systemService.StartMetricsMonitor(ctx, 60*time.Second)

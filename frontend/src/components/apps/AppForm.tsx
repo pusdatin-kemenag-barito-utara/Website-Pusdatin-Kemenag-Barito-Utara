@@ -210,7 +210,7 @@ export function AppForm({ onSubmit, onCancel, loading }: AppFormProps) {
             value={formData.schemaUrl}
             onChange={(e) => setFormData({ ...formData, schemaUrl: e.target.value })}
             type="url"
-            placeholder="https://supabase.com/..."
+            placeholder="https://db-pusdatin.kemenag-baritoutara.com/..."
           />
         </div>
         <div>

@@ -26,9 +26,7 @@ const baseUrl = env.siteUrl || (Astro.url ? Astro.url.origin : "https://pusdatin
 
 const publicConfig = {
   PUBLIC_SITE_URL: env.siteUrl || baseUrl,
-  PUBLIC_SUPABASE_URL: env.supabaseUrl,
-  PUBLIC_SUPABASE_ANON_KEY: env.supabaseAnonKey,
-  PUBLIC_SUPABASE_PUBLISHABLE_KEY: env.supabasePublishableKey,
+  PUBLIC_POCKETBASE_URL: env.pocketbaseUrl,
   PUBLIC_TURNSTILE_SITE_KEY: env.turnstileSiteKey,
   PUBLIC_GA_MEASUREMENT_ID: env.gaMeasurementId,
   PUBLIC_GTM_ID: env.gtmId,
@@ -154,10 +152,10 @@ const sitelinksJsonLd = {
     <link rel="preconnect" href="https://www.google-analytics.com" crossorigin />
     <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
     <link rel="preconnect" href="https://static.cloudflareinsights.com" crossorigin />
-    {env.supabaseUrl && (
+    {env.pocketbaseUrl && (
       <>
-        <link rel="preconnect" href={env.supabaseUrl} crossorigin />
-        <link rel="dns-prefetch" href={env.supabaseUrl} />
+        <link rel="preconnect" href={env.pocketbaseUrl} crossorigin />
+        <link rel="dns-prefetch" href={env.pocketbaseUrl} />
       </>
     )}
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />

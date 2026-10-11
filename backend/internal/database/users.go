@@ -2,89 +2,112 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"strings"
 
-	"github.com/jackc/pgx/v5"
+	"pusdatin/backend/internal/domain"
 )
 
-const userSelectCols = `
-	u.id, u.name, u.email, u.role, u.user_type, u.status, u.avatar,
-	NULL::text AS nip, NULL::text AS jabatan, NULL::text AS pangkat_golongan, NULL::text AS unit_kerja,
-	u.phone AS no_hp,
-	u.address AS alamat,
-	NULL::text AS nik, NULL::text AS pekerjaan,
-	u.created_at, u.updated_at`
+type pbProfile struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	Status    string `json:"status"`
+	UserType  string `json:"user_type"`
+	Avatar    string `json:"avatar"`
+	AvatarURL string `json:"avatar_url"`
+	Phone     string `json:"phone"`
+	Address   string `json:"address"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Created   string `json:"created"`
+	Updated   string `json:"updated"`
+}
 
-func (s *Store) GetUser(ctx context.Context, id string) (*User, error) {
-	query := `SELECT ` + userSelectCols + `
-		FROM kemenag_pusdatin.profiles u
-		WHERE u.id = $1 LIMIT 1`
+func (p *pbProfile) toDomainUser() *domain.User {
+	u := &domain.User{
+		ID:             p.ID,
+		Name:           p.Name,
+		Email:          p.Email,
+		Role:           p.Role,
+		UserType:       p.UserType,
+		Status:         p.Status,
+		AppPermissions: []domain.AppPermission{},
+	}
+	if p.UserType == "" {
+		u.UserType = "internal_admin"
+	}
+	if p.Status == "" {
+		u.Status = "active"
+	}
 
-	rows, err := s.pool.Query(ctx, query, id)
-	if err != nil {
-		return nil, err
+	av := p.AvatarURL
+	if av == "" {
+		av = p.Avatar
 	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, pgx.ErrNoRows
+	if av != "" {
+		u.Avatar = &av
 	}
-	return scanUser(rows)
+
+	if p.Phone != "" {
+		u.NoHP = &p.Phone
+	}
+	if p.Address != "" {
+		u.Alamat = &p.Address
+	}
+
+	cAt := p.CreatedAt
+	if cAt == "" {
+		cAt = p.Created
+	}
+	u.CreatedAt = cAt
+
+	uAt := p.UpdatedAt
+	if uAt == "" {
+		uAt = p.Updated
+	}
+	u.UpdatedAt = uAt
+
+	return u
+}
+
+func (s *Store) GetUser(ctx context.Context, id string) (*domain.User, error) {
+	var p pbProfile
+	if err := s.GetRecord(ctx, "profiles", id, &p); err != nil {
+		return nil, domain.ErrNotFound
+	}
+	return p.toDomainUser(), nil
 }
 
 // GetUserByEmail is used for session context resolution.
-func (s *Store) GetUserByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT ` + userSelectCols + `
-		FROM kemenag_pusdatin.profiles u
-		WHERE LOWER(u.email) = LOWER($1) LIMIT 1`
-	rows, err := s.pool.Query(ctx, query, email)
+func (s *Store) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	email = strings.TrimSpace(email)
+	params := url.Values{}
+	params.Set("filter", fmt.Sprintf("email = '%s'", strings.ReplaceAll(email, "'", "\\'")))
+	params.Set("perPage", "1")
+
+	var profiles []pbProfile
+	total, err := s.ListRecords(ctx, "profiles", params, &profiles)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, pgx.ErrNoRows
+	if total == 0 || len(profiles) == 0 {
+		return nil, domain.ErrNotFound
 	}
-	return scanUser(rows)
+	return profiles[0].toDomainUser(), nil
 }
 
 // GetUserRole returns the role (and status) for a profile id.
 func (s *Store) GetUserRole(ctx context.Context, id string) (role string, status string, err error) {
-	err = s.pool.QueryRow(ctx,
-		`SELECT role, status FROM kemenag_pusdatin.profiles WHERE id = $1`, id,
-	).Scan(&role, &status)
-	return
-}
-
-func (s *Store) GetUserPermissions(ctx context.Context, userID string) ([]AppPermission, error) {
-	return []AppPermission{}, nil
-}
-
-type pgxRow interface {
-	Scan(dest ...any) error
-}
-
-func scanUser(row pgxRow) (*User, error) {
-	var u User
-	var avatar, nip, jabatan, pangkat, unitKerja, noHp, alamat, nik, pekerjaan *string
-	var createdAt, updatedAt any
-
-	if err := row.Scan(
-		&u.ID, &u.Name, &u.Email, &u.Role, &u.UserType, &u.Status,
-		&avatar, &nip, &jabatan, &pangkat, &unitKerja, &noHp, &alamat, &nik, &pekerjaan,
-		&createdAt, &updatedAt,
-	); err != nil {
-		return nil, err
+	var p pbProfile
+	if err := s.GetRecord(ctx, "profiles", id, &p); err != nil {
+		return "", "", domain.ErrNotFound
 	}
-	u.Avatar = avatar
-	u.NIP = nip
-	u.Jabatan = jabatan
-	u.PangkatGolongan = pangkat
-	u.UnitKerja = unitKerja
-	u.NoHP = noHp
-	u.Alamat = alamat
-	u.NIK = nik
-	u.Pekerjaan = pekerjaan
-	u.CreatedAt = formatTime(asTime(createdAt))
-	u.UpdatedAt = formatTime(asTime(updatedAt))
-	u.AppPermissions = []AppPermission{}
-	return &u, nil
+	return p.Role, p.Status, nil
+}
+
+func (s *Store) GetUserPermissions(ctx context.Context, userID string) ([]domain.AppPermission, error) {
+	return []domain.AppPermission{}, nil
 }

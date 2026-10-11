@@ -68,7 +68,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  let hasSupabaseSession = false;
+  let hasAuthSession = false;
 
   let cookieHeader = "";
   try {
@@ -86,17 +86,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const value = eq === -1 ? "" : part.slice(eq + 1);
       return { name, value };
     })
-    .filter((c) => c.name.startsWith("sb-pusdatin-auth-token"));
+    .filter((c) => c.name.startsWith("pb-pusdatin-auth-token") || c.name.startsWith("sb-pusdatin-auth-token"));
 
   if (authCookies.length > 0) {
-    hasSupabaseSession = true;
+    hasAuthSession = true;
     try {
       authCookies.sort((a, b) => a.name.localeCompare(b.name));
       const combinedCookie = authCookies.map((c) => c.value).join("");
       const payload = parseAccessToken(combinedCookie);
 
       if (payload?.exp && payload.exp * 1000 < Date.now()) {
-        hasSupabaseSession = false;
+        hasAuthSession = false;
       }
     } catch (e) {
       console.error("[MIDDLEWARE] Failed to parse JWT:", e);
@@ -105,7 +105,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const start = performance.now();
 
-  if (!hasSupabaseSession && !isPublic && pathname !== "/") {
+  if (!hasAuthSession && !isPublic && pathname !== "/") {
     if (import.meta.env.DEV) {
       console.log(
         `\x1b[90m[${new Date().toTimeString().split(" ")[0]}]\x1b[0m 🟡 \x1b[33m307 REDIR\x1b[0m | \x1b[36m${context.request.method}\x1b[0m \x1b[1m${pathname}\x1b[0m -> /login (Unauthenticated)`
@@ -127,7 +127,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       context.request.method,
       pathname,
       duration,
-      hasSupabaseSession ? "\x1b[32mSuperAdmin\x1b[0m" : "\x1b[90mPublic\x1b[0m"
+      hasAuthSession ? "\x1b[32mSuperAdmin\x1b[0m" : "\x1b[90mPublic\x1b[0m"
     );
   }
 

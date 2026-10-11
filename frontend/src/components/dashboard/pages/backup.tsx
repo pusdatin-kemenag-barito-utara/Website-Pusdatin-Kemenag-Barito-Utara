@@ -131,10 +131,10 @@ export function BackupPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <Database className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
-            Pencadangan Database Supabase (Cloudflare R2)
+            Pencadangan Database PocketBase (Cloudflare R2)
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Sistem pencadangan otomatis menyeluruh (seluruh tabel & skema) setiap pukul 12 malam (00:00 WIB) ke Cloudflare R2 Object Storage.
+            Sistem pencadangan otomatis menyeluruh (seluruh tabel & koleksi) setiap pukul 12 malam (00:00 WIB) ke Cloudflare R2 Object Storage.
           </p>
         </div>
 

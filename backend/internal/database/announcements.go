@@ -3,127 +3,135 @@ package database
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
-
-	"github.com/jackc/pgx/v5"
+	"time"
 
 	"pusdatin/backend/internal/domain"
 )
 
-func scanAnnouncement(row pgxRow) (*domain.Announcement, error) {
-	var a domain.Announcement
-	var createdBy *string
-	var createdAt, updatedAt any
+type pbAnnouncement struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Tag         string `json:"tag"`
+	Description string `json:"description"`
+	IsImportant bool   `json:"is_important"`
+	IsActive    bool   `json:"is_active"`
+	OrderIndex  int    `json:"order_index"`
+	CreatedBy   string `json:"created_by"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+	Created     string `json:"created"`
+	Updated     string `json:"updated"`
+}
 
-	if err := row.Scan(
-		&a.ID, &a.Title, &a.Tag, &a.Description,
-		&a.IsImportant, &a.IsActive, &a.OrderIndex,
-		&createdBy, &createdAt, &updatedAt,
-	); err != nil {
-		return nil, err
+func (p *pbAnnouncement) toDomain() *domain.Announcement {
+	a := &domain.Announcement{
+		ID:          p.ID,
+		Title:       p.Title,
+		Tag:         p.Tag,
+		Description: p.Description,
+		IsImportant: p.IsImportant,
+		IsActive:    p.IsActive,
+		OrderIndex:  p.OrderIndex,
 	}
+	if p.CreatedBy != "" {
+		a.CreatedBy = &p.CreatedBy
+	}
+	cAt := p.CreatedAt
+	if cAt == "" {
+		cAt = p.Created
+	}
+	a.CreatedAt = cAt
 
-	a.CreatedBy = createdBy
-	a.CreatedAt = formatTime(asTime(createdAt))
-	a.UpdatedAt = formatTime(asTime(updatedAt))
-	return &a, nil
+	uAt := p.UpdatedAt
+	if uAt == "" {
+		uAt = p.Updated
+	}
+	a.UpdatedAt = uAt
+
+	return a
 }
 
 func (s *Store) ListAnnouncements(ctx context.Context, search string) ([]*domain.Announcement, error) {
-	query := `
-		SELECT id, title, tag, description, is_important, is_active, order_index, created_by, created_at, updated_at
-		FROM kemenag_pusdatin.announcements
-		ORDER BY is_important DESC, order_index ASC, created_at DESC`
+	params := url.Values{}
+	params.Set("sort", "-is_important,+order_index,-created")
+	params.Set("perPage", "500")
 
-	rows, err := s.pool.Query(ctx, query)
-	if err != nil {
+	var records []pbAnnouncement
+	if _, err := s.ListRecords(ctx, "announcements", params, &records); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	list := []*domain.Announcement{}
-	for rows.Next() {
-		a, err := scanAnnouncement(rows)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, a)
-	}
+	list := make([]*domain.Announcement, 0, len(records))
+	needle := strings.ToLower(strings.TrimSpace(search))
 
-	if search != "" {
-		needle := strings.ToLower(search)
-		filtered := list[:0]
-		for _, a := range list {
-			if strings.Contains(strings.ToLower(a.Title), needle) ||
-				strings.Contains(strings.ToLower(a.Tag), needle) ||
-				strings.Contains(strings.ToLower(a.Description), needle) {
-				filtered = append(filtered, a)
+	for i := range records {
+		item := records[i].toDomain()
+		if needle != "" {
+			if !strings.Contains(strings.ToLower(item.Title), needle) &&
+				!strings.Contains(strings.ToLower(item.Tag), needle) &&
+				!strings.Contains(strings.ToLower(item.Description), needle) {
+				continue
 			}
 		}
-		list = filtered
+		list = append(list, item)
 	}
-
-	return list, rows.Err()
+	return list, nil
 }
 
 func (s *Store) ListPublicAnnouncements(ctx context.Context) ([]*domain.Announcement, error) {
-	query := `
-		SELECT id, title, tag, description, is_important, is_active, order_index, created_by, created_at, updated_at
-		FROM kemenag_pusdatin.announcements
-		WHERE is_active = true
-		ORDER BY is_important DESC, order_index ASC, created_at DESC`
+	params := url.Values{}
+	params.Set("filter", "is_active = true")
+	params.Set("sort", "-is_important,+order_index,-created")
+	params.Set("perPage", "500")
 
-	rows, err := s.pool.Query(ctx, query)
-	if err != nil {
+	var records []pbAnnouncement
+	if _, err := s.ListRecords(ctx, "announcements", params, &records); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	list := []*domain.Announcement{}
-	for rows.Next() {
-		a, err := scanAnnouncement(rows)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, a)
+	list := make([]*domain.Announcement, len(records))
+	for i := range records {
+		list[i] = records[i].toDomain()
 	}
-	return list, rows.Err()
+	return list, nil
 }
 
 func (s *Store) GetAnnouncement(ctx context.Context, id string) (*domain.Announcement, error) {
-	query := `
-		SELECT id, title, tag, description, is_important, is_active, order_index, created_by, created_at, updated_at
-		FROM kemenag_pusdatin.announcements
-		WHERE id = $1 LIMIT 1`
-
-	rows, err := s.pool.Query(ctx, query, id)
-	if err != nil {
-		return nil, err
+	var record pbAnnouncement
+	if err := s.GetRecord(ctx, "announcements", id, &record); err != nil {
+		return nil, fmt.Errorf("announcement not found: %w", err)
 	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return nil, pgx.ErrNoRows
-	}
-	return scanAnnouncement(rows)
+	return record.toDomain(), nil
 }
 
 func (s *Store) CreateAnnouncement(ctx context.Context, a *domain.Announcement) error {
-	query := `
-		INSERT INTO kemenag_pusdatin.announcements (
-			title, tag, description, is_important, is_active, order_index, created_by
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, created_at, updated_at`
+	now := time.Now().UTC().Format("2006-01-02 15:04:05.000Z")
+	payload := map[string]any{
+		"title":        a.Title,
+		"tag":          a.Tag,
+		"description":  a.Description,
+		"is_important": a.IsImportant,
+		"is_active":    a.IsActive,
+		"order_index":  a.OrderIndex,
+		"created_at":   now,
+		"updated_at":   now,
+	}
+	if a.ID != "" {
+		payload["id"] = a.ID
+	}
+	if a.CreatedBy != nil {
+		payload["created_by"] = *a.CreatedBy
+	}
 
-	var createdAt, updatedAt any
-	err := s.pool.QueryRow(ctx, query,
-		a.Title, a.Tag, a.Description, a.IsImportant, a.IsActive, a.OrderIndex, a.CreatedBy,
-	).Scan(&a.ID, &createdAt, &updatedAt)
-	if err != nil {
+	var created pbAnnouncement
+	if err := s.CreateRecord(ctx, "announcements", payload, &created); err != nil {
 		return err
 	}
-	a.CreatedAt = formatTime(asTime(createdAt))
-	a.UpdatedAt = formatTime(asTime(updatedAt))
+	a.ID = created.ID
+	a.CreatedAt = created.CreatedAt
+	a.UpdatedAt = created.UpdatedAt
 	return nil
 }
 
@@ -131,28 +139,12 @@ func (s *Store) UpdateAnnouncement(ctx context.Context, id string, fields map[st
 	if len(fields) == 0 {
 		return nil
 	}
-
-	cols := []string{}
-	args := []any{}
-	idx := 1
-
-	for k, v := range fields {
-		cols = append(cols, fmt.Sprintf("%s = $%d", k, idx))
-		args = append(args, v)
-		idx++
-	}
-	args = append(args, id)
-
-	query := fmt.Sprintf(`UPDATE kemenag_pusdatin.announcements SET %s, updated_at = now() WHERE id = $%d`,
-		strings.Join(cols, ", "), idx)
-
-	_, err := s.pool.Exec(ctx, query, args...)
-	return err
+	fields["updated_at"] = time.Now().UTC().Format("2006-01-02 15:04:05.000Z")
+	return s.UpdateRecord(ctx, "announcements", id, fields, nil)
 }
 
 func (s *Store) DeleteAnnouncement(ctx context.Context, id string) error {
-	_, err := s.pool.Exec(ctx, `DELETE FROM kemenag_pusdatin.announcements WHERE id = $1`, id)
-	return err
+	return s.DeleteRecord(ctx, "announcements", id)
 }
 
 var _ domain.AnnouncementRepository = (*Store)(nil)

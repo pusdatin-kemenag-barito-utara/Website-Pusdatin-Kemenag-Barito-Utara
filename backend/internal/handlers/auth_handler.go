@@ -60,7 +60,7 @@ func (h *AuthHandler) LoginHandler(c fiber.Ctx) error {
 	// Clear old chunked session cookies first to prevent Cookie header accumulation
 	auth.ClearSessionCookies(c)
 
-	// Write session cookies matching @supabase/ssr format
+	// Write chunked session cookies matching client session format
 	if err := auth.WriteSessionCookies(c, res.RawSession, h.cfg.IsProduction); err != nil {
 		fmt.Printf("[API AUTH ERROR] WriteSessionCookies failed for email %s: %v\n", req.Email, err)
 		return utils.Internal(c, "Terjadi kesalahan server")

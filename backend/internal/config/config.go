@@ -12,12 +12,9 @@ import (
 type Config struct {
 	Port string
 
-	DatabaseURL string
-
-	SupabaseURL            string
-	SupabaseAnonKey        string
-	SupabasePublishableKey string
-	SupabaseServiceRoleKey string
+	PocketBaseURL           string
+	PocketBaseAdminEmail    string
+	PocketBaseAdminPassword string
 
 	TurnstileSecretKey string
 
@@ -49,7 +46,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// Load reads configuration from backend/.env, root .env.local (dev convenience),
+// Load reads configuration from backend/.env, root .env (dev convenience),
 // and environment variables (highest precedence).
 func Load() (*Config, error) {
 	_ = godotenv.Load(filepath.Join("..", ".env"))
@@ -57,27 +54,29 @@ func Load() (*Config, error) {
 
 	env := getEnv("NODE_ENV", getEnv("APP_ENV", "development"))
 
+	pbURL := getEnv("POCKETBASE_URL", getEnv("PUBLIC_POCKETBASE_URL", "https://db-pusdatin.kemenag-baritoutara.com"))
+	pbAdminEmail := getEnv("POCKETBASE_ADMIN_EMAIL", getEnv("SUPER_ADMIN_EMAIL", "baritoutara@kemenag.go.id"))
+	pbAdminPassword := getEnv("POCKETBASE_ADMIN_PASSWORD", "@Kemenag_126")
+
 	cfg := &Config{
-		Port:                   getEnv("BACKEND_PORT", "8080"),
-		DatabaseURL:            os.Getenv("DATABASE_URL"),
-		SupabaseURL:            getEnv("PUBLIC_SUPABASE_URL", os.Getenv("SUPABASE_URL")),
-		SupabaseAnonKey:        getEnv("PUBLIC_SUPABASE_ANON_KEY", getEnv("SUPABASE_ANON_KEY", getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", os.Getenv("SUPABASE_PUBLISHABLE_KEY")))),
-		SupabasePublishableKey: getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", getEnv("SUPABASE_PUBLISHABLE_KEY", getEnv("PUBLIC_SUPABASE_ANON_KEY", os.Getenv("SUPABASE_ANON_KEY")))),
-		SupabaseServiceRoleKey: os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
-		TurnstileSecretKey:     os.Getenv("TURNSTILE_SECRET_KEY"),
-		TrustedDeviceSecret:    os.Getenv("TRUSTED_DEVICE_SECRET"),
-		SuperAdminEmail:        os.Getenv("SUPER_ADMIN_EMAIL"),
-		CloudflareAccountID:    os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
-		CloudflareAPIToken:     os.Getenv("CLOUDFLARE_API_TOKEN"),
-		R2AccessKeyID:          os.Getenv("R2_ACCESS_KEY_ID"),
-		R2SecretAccessKey:      os.Getenv("R2_SECRET_ACCESS_KEY"),
-		R2EndpointURL:          os.Getenv("R2_ENDPOINT_URL"),
-		R2BucketPusdatin:       getEnv("R2_BUCKET_PUSDATIN", "data-pusdatin"),
-		R2BucketBackup:         getEnv("R2_BUCKET_BACKUP", "database-back-up-daily"),
-		R2PublicURL:            getEnv("R2_PUBLIC_URL", "https://files.kemenag-baritoutara.com/pusdatin"),
-		RedisURL:               os.Getenv("REDIS_URL"),
-		SiteURL:                getEnv("PUBLIC_SITE_URL", getEnv("SITE_URL", "https://pusdatin.kemenag-baritoutara.com")),
-		IsProduction:           env == "production" || env == "prod",
+		Port:                    getEnv("BACKEND_PORT", "8080"),
+		PocketBaseURL:           pbURL,
+		PocketBaseAdminEmail:    pbAdminEmail,
+		PocketBaseAdminPassword: pbAdminPassword,
+		TurnstileSecretKey:      os.Getenv("TURNSTILE_SECRET_KEY"),
+		TrustedDeviceSecret:     os.Getenv("TRUSTED_DEVICE_SECRET"),
+		SuperAdminEmail:         getEnv("SUPER_ADMIN_EMAIL", "baritoutara@kemenag.go.id"),
+		CloudflareAccountID:     os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
+		CloudflareAPIToken:      os.Getenv("CLOUDFLARE_API_TOKEN"),
+		R2AccessKeyID:           os.Getenv("R2_ACCESS_KEY_ID"),
+		R2SecretAccessKey:       os.Getenv("R2_SECRET_ACCESS_KEY"),
+		R2EndpointURL:           os.Getenv("R2_ENDPOINT_URL"),
+		R2BucketPusdatin:        getEnv("R2_BUCKET_PUSDATIN", "data-pusdatin"),
+		R2BucketBackup:          getEnv("R2_BUCKET_BACKUP", "database-back-up-daily"),
+		R2PublicURL:             getEnv("R2_PUBLIC_URL", "https://files.kemenag-baritoutara.com/pusdatin"),
+		RedisURL:                os.Getenv("REDIS_URL"),
+		SiteURL:                 getEnv("PUBLIC_SITE_URL", getEnv("SITE_URL", "https://pusdatin.kemenag-baritoutara.com")),
+		IsProduction:            env == "production" || env == "prod",
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -88,18 +87,17 @@ func Load() (*Config, error) {
 
 func (c *Config) validate() error {
 	required := map[string]string{
-		"DATABASE_URL":              c.DatabaseURL,
-		"SUPABASE_URL":              c.SupabaseURL,
-		"SUPABASE_ANON_KEY":         c.SupabaseAnonKey,
-		"SUPABASE_SERVICE_ROLE_KEY": c.SupabaseServiceRoleKey,
-		"TURNSTILE_SECRET_KEY":      c.TurnstileSecretKey,
-		"TRUSTED_DEVICE_SECRET":     c.TrustedDeviceSecret,
-		"SUPER_ADMIN_EMAIL":         c.SuperAdminEmail,
-		"CLOUDFLARE_ACCOUNT_ID":     c.CloudflareAccountID,
-		"CLOUDFLARE_API_TOKEN":      c.CloudflareAPIToken,
-		"R2_ACCESS_KEY_ID":          c.R2AccessKeyID,
-		"R2_SECRET_ACCESS_KEY":      c.R2SecretAccessKey,
-		"R2_ENDPOINT_URL":           c.R2EndpointURL,
+		"POCKETBASE_URL":           c.PocketBaseURL,
+		"POCKETBASE_ADMIN_EMAIL":   c.PocketBaseAdminEmail,
+		"POCKETBASE_ADMIN_PASSWORD": c.PocketBaseAdminPassword,
+		"TURNSTILE_SECRET_KEY":     c.TurnstileSecretKey,
+		"TRUSTED_DEVICE_SECRET":    c.TrustedDeviceSecret,
+		"SUPER_ADMIN_EMAIL":        c.SuperAdminEmail,
+		"CLOUDFLARE_ACCOUNT_ID":    c.CloudflareAccountID,
+		"CLOUDFLARE_API_TOKEN":     c.CloudflareAPIToken,
+		"R2_ACCESS_KEY_ID":         c.R2AccessKeyID,
+		"R2_SECRET_ACCESS_KEY":     c.R2SecretAccessKey,
+		"R2_ENDPOINT_URL":          c.R2EndpointURL,
 	}
 	for name, val := range required {
 		if val == "" {

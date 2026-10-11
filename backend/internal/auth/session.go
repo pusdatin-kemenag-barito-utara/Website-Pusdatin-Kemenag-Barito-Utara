@@ -22,8 +22,8 @@ const sessionCookiePrefix = "sb-pusdatin-auth-token"
 type SessionUser = domain.SessionUser
 type SessionContext = domain.SessionContext
 
-// BuildSessionContext derives a SessionContext from a verified Supabase user,
-// mirroring lib/auth.ts getCurrentSessionContext.
+// BuildSessionContext derives a SessionContext from a verified auth user,
+// mirroring client session context logic.
 func BuildSessionContext(ctx context.Context, cfg *config.Config, store *database.Store, supaUser *domain.AuthUser) *domain.SessionContext {
 	fail := func() *domain.SessionContext {
 		return &domain.SessionContext{User: nil, IsAuthenticated: false, IsAdmin: false}
@@ -73,7 +73,7 @@ func BuildSessionContext(ctx context.Context, cfg *config.Config, store *databas
 	}
 }
 
-// ResolveSession rebuilds the session context from the Supabase cookies.
+// ResolveSession rebuilds the session context from the session cookies.
 func ResolveSession(ctx context.Context, cfg *config.Config, store *database.Store, sc *Client, c fiber.Ctx) *domain.SessionContext {
 	accessToken := ExtractAccessToken(c)
 	if accessToken == "" {
@@ -172,8 +172,8 @@ func accessTokenFromValue(combined string) string {
 	return ""
 }
 
-// WriteSessionCookies writes the Supabase session into chunked cookies matching
-// the @supabase/ssr format: name.{i} with URI-encoded base64url("base64-" + json).
+// WriteSessionCookies writes the session into chunked cookies matching
+// the client format: name.{i} with URI-encoded base64url("base64-" + json).
 const maxChunkSize = 3180
 
 func WriteSessionCookies(c fiber.Ctx, sessionJSON []byte, secure bool) error {

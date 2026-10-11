@@ -344,7 +344,7 @@ export function InfrastructurePage() {
             </CardBody>
           </Card>
 
-          {/* SERVICE 4: SUPABASE AUTH */}
+          {/* SERVICE 4: POCKETBASE DATABASE & AUTH */}
           <Card className="border-l-4 border-l-emerald-500">
             <CardBody>
               <div className="flex items-start justify-between">
@@ -353,13 +353,13 @@ export function InfrastructurePage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     AKTIF
                   </span>
-                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">Supabase Auth & 2FA</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">JWT Engine & Trusted Device</p>
+                  <h4 className="font-semibold text-slate-900 dark:text-white mt-2">PocketBase Database & Auth</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Primary DB & Admin Auth Engine</p>
                 </div>
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
               </div>
               <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between text-xs text-slate-500">
-                <span>AAL2 Security: Ready</span>
+                <span>Database: db-pusdatin</span>
                 <span className="font-medium text-emerald-600 dark:text-emerald-400">Session: Active</span>
               </div>
             </CardBody>

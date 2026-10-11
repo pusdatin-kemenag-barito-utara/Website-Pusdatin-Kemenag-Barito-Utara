@@ -46,7 +46,7 @@ type SessionContext struct {
 	IsAdmin         bool
 }
 
-// IdentityProvider abstracts identity management services (e.g. Supabase Auth).
+// IdentityProvider abstracts identity management services (e.g. PocketBase Auth).
 type IdentityProvider interface {
 	SignInWithPassword(ctx context.Context, email, password string) (*TokenResponse, error)
 	GetUser(ctx context.Context, accessToken string) (*AuthUser, error)

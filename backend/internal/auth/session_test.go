@@ -12,8 +12,7 @@ import (
 )
 
 // TestSessionCookieRoundTrip verifies that cookies written by
-// WriteSessionCookies are reconstructed by ExtractAccessToken, matching the
-// @supabase/ssr chunked cookie format.
+// WriteSessionCookies are reconstructed by ExtractAccessToken.
 func TestSessionCookieRoundTrip(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiJ9.payload.with.dots.signature"
 	sessionJSON, _ := json.Marshal(map[string]any{

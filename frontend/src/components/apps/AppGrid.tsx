@@ -579,7 +579,7 @@ function EditAppModal({
                 setFormData({ ...formData, schemaUrl: e.target.value })
               }
               type="url"
-              placeholder="https://supabase.com/..."
+              placeholder="https://db-pusdatin.kemenag-baritoutara.com/..."
             />
           </div>
           <div>

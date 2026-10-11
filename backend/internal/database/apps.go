@@ -2,161 +2,177 @@ package database
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strings"
+	"net/url"
+	"time"
+
+	"pusdatin/backend/internal/domain"
 )
 
-func (s *Store) ListApps(ctx context.Context) ([]*App, error) {
-	rows, err := s.pool.Query(ctx, `
-		SELECT id, name, description, icon, url, schema_name, schema_url,
-			status, last_health_check, sort_order, available_features, created_at
-		FROM kemenag_pusdatin.satellite_apps
-		ORDER BY sort_order ASC`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	apps := []*App{}
-	for rows.Next() {
-		a, err := scanApp(rows)
-		if err != nil {
-			return nil, err
-		}
-		apps = append(apps, a)
-	}
-	return apps, rows.Err()
+type pbApp struct {
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	Icon              string `json:"icon"`
+	URL               string `json:"url"`
+	SchemaName        string `json:"schema_name"`
+	SchemaURL         string `json:"schema_url"`
+	Status            string `json:"status"`
+	LastHealthCheck   string `json:"last_health_check"`
+	SortOrder         int32  `json:"sort_order"`
+	AvailableFeatures []any  `json:"available_features"`
+	CreatedAt         string `json:"created_at"`
+	Created           string `json:"created"`
 }
 
-func (s *Store) ListOnlineApps(ctx context.Context) ([]*App, error) {
-	rows, err := s.pool.Query(ctx, `
-		SELECT id, name, description, icon, url, schema_name, schema_url,
-			status, last_health_check, sort_order, available_features, created_at
-		FROM kemenag_pusdatin.satellite_apps
-		WHERE status = 'online'
-		ORDER BY sort_order ASC`)
-	if err != nil {
-		return nil, err
+func (p *pbApp) toDomainApp() *domain.App {
+	a := &domain.App{
+		ID:                p.ID,
+		Name:              p.Name,
+		SchemaName:        p.SchemaName,
+		Status:            p.Status,
+		SortOrder:         p.SortOrder,
+		AvailableFeatures: p.AvailableFeatures,
 	}
-	defer rows.Close()
-
-	apps := []*App{}
-	for rows.Next() {
-		a, err := scanApp(rows)
-		if err != nil {
-			return nil, err
-		}
-		apps = append(apps, a)
+	if a.AvailableFeatures == nil {
+		a.AvailableFeatures = []any{}
 	}
-	return apps, rows.Err()
+	if p.Description != "" {
+		a.Description = &p.Description
+	}
+	if p.Icon != "" {
+		a.Icon = &p.Icon
+	}
+	if p.URL != "" {
+		a.URL = &p.URL
+	}
+	if p.SchemaURL != "" {
+		a.SchemaURL = &p.SchemaURL
+	}
+	if p.LastHealthCheck != "" {
+		a.LastHealthCheck = &p.LastHealthCheck
+	}
+	cAt := p.CreatedAt
+	if cAt == "" {
+		cAt = p.Created
+	}
+	a.CreatedAt = cAt
+	return a
 }
 
-func (s *Store) GetApp(ctx context.Context, id string) (*App, error) {
-	rows, err := s.pool.Query(ctx, `
-		SELECT id, name, description, icon, url, schema_name, schema_url,
-			status, last_health_check, sort_order, available_features, created_at
-		FROM kemenag_pusdatin.satellite_apps WHERE id = $1 LIMIT 1`, id)
-	if err != nil {
+func (s *Store) ListApps(ctx context.Context) ([]*domain.App, error) {
+	params := url.Values{}
+	params.Set("sort", "+sort_order")
+	params.Set("perPage", "500")
+
+	var records []pbApp
+	if _, err := s.ListRecords(ctx, "satellite_apps", params, &records); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, fmt.Errorf("app not found")
+
+	apps := make([]*domain.App, len(records))
+	for i := range records {
+		apps[i] = records[i].toDomainApp()
 	}
-	return scanApp(rows)
+	return apps, nil
+}
+
+func (s *Store) ListOnlineApps(ctx context.Context) ([]*domain.App, error) {
+	params := url.Values{}
+	params.Set("filter", "status = 'online'")
+	params.Set("sort", "+sort_order")
+	params.Set("perPage", "500")
+
+	var records []pbApp
+	if _, err := s.ListRecords(ctx, "satellite_apps", params, &records); err != nil {
+		return nil, err
+	}
+
+	apps := make([]*domain.App, len(records))
+	for i := range records {
+		apps[i] = records[i].toDomainApp()
+	}
+	return apps, nil
+}
+
+func (s *Store) GetApp(ctx context.Context, id string) (*domain.App, error) {
+	var record pbApp
+	if err := s.GetRecord(ctx, "satellite_apps", id, &record); err != nil {
+		return nil, fmt.Errorf("app not found: %w", err)
+	}
+	return record.toDomainApp(), nil
 }
 
 func (s *Store) GetAppStatus(ctx context.Context, id string) (string, error) {
-	var status string
-	err := s.pool.QueryRow(ctx,
-		`SELECT status FROM kemenag_pusdatin.satellite_apps WHERE id = $1`, id).Scan(&status)
-	return status, err
+	app, err := s.GetApp(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	return app.Status, nil
 }
 
 func (s *Store) AppExists(ctx context.Context, id string) (bool, error) {
-	var exists bool
-	err := s.pool.QueryRow(ctx,
-		`SELECT EXISTS(SELECT 1 FROM kemenag_pusdatin.satellite_apps WHERE id = $1)`, id).Scan(&exists)
-	return exists, err
+	var record pbApp
+	if err := s.GetRecord(ctx, "satellite_apps", id, &record); err != nil {
+		return false, nil
+	}
+	return record.ID != "", nil
 }
 
-func (s *Store) CreateApp(ctx context.Context, app *App) error {
-	features, _ := marshalFeatures(app.AvailableFeatures)
-	_, err := s.pool.Exec(ctx, `
-		INSERT INTO kemenag_pusdatin.satellite_apps
-			(id, name, description, icon, url, schema_name, schema_url, status, sort_order, available_features)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		app.ID, app.Name, app.Description, app.Icon, app.URL, app.SchemaName,
-		app.SchemaURL, app.Status, app.SortOrder, features)
-	return err
+func (s *Store) CreateApp(ctx context.Context, app *domain.App) error {
+	payload := map[string]any{
+		"id":                 app.ID,
+		"name":               app.Name,
+		"schema_name":        app.SchemaName,
+		"status":             app.Status,
+		"sort_order":         app.SortOrder,
+		"available_features": app.AvailableFeatures,
+	}
+	if app.Description != nil {
+		payload["description"] = *app.Description
+	}
+	if app.Icon != nil {
+		payload["icon"] = *app.Icon
+	}
+	if app.URL != nil {
+		payload["url"] = *app.URL
+	}
+	if app.SchemaURL != nil {
+		payload["schema_url"] = *app.SchemaURL
+	}
+	return s.CreateRecord(ctx, "satellite_apps", payload, nil)
 }
 
 func (s *Store) UpdateApp(ctx context.Context, id string, fields map[string]any) error {
 	if len(fields) == 0 {
 		return nil
 	}
-	cols := []string{}
-	args := []any{}
-	idx := 1
-	for k, v := range fields {
-		cols = append(cols, fmt.Sprintf("%s = $%d", k, idx))
-		args = append(args, v)
-		idx++
-	}
-	args = append(args, id)
-	query := fmt.Sprintf(`UPDATE kemenag_pusdatin.satellite_apps SET %s WHERE id = $%d`,
-		strings.Join(cols, ", "), idx)
-	_, err := s.pool.Exec(ctx, query, args...)
-	return err
+	return s.UpdateRecord(ctx, "satellite_apps", id, fields, nil)
 }
 
 func (s *Store) UpdateAppStatus(ctx context.Context, id, status string) error {
-	_, err := s.pool.Exec(ctx, `
-		UPDATE kemenag_pusdatin.satellite_apps
-		SET status = $2, last_health_check = now()
-		WHERE id = $1`, id, status)
-	return err
+	now := time.Now().UTC().Format("2006-01-02 15:04:05.000Z")
+	return s.UpdateRecord(ctx, "satellite_apps", id, map[string]any{
+		"status":            status,
+		"last_health_check": now,
+	}, nil)
 }
 
 func (s *Store) UpdateAllAppsStatus(ctx context.Context, status string) error {
-	_, err := s.pool.Exec(ctx, `
-		UPDATE kemenag_pusdatin.satellite_apps SET status = $1, last_health_check = now()`, status)
-	return err
+	apps, err := s.ListApps(ctx)
+	if err != nil {
+		return err
+	}
+	now := time.Now().UTC().Format("2006-01-02 15:04:05.000Z")
+	for _, a := range apps {
+		_ = s.UpdateRecord(ctx, "satellite_apps", a.ID, map[string]any{
+			"status":            status,
+			"last_health_check": now,
+		}, nil)
+	}
+	return nil
 }
 
 func (s *Store) DeleteApp(ctx context.Context, id string) error {
-	_, err := s.pool.Exec(ctx, `DELETE FROM kemenag_pusdatin.satellite_apps WHERE id = $1`, id)
-	return err
+	return s.DeleteRecord(ctx, "satellite_apps", id)
 }
-
-func scanApp(rows interface{ Scan(dest ...any) error }) (*App, error) {
-	var a App
-	var desc, icon, url, schemaURL *string
-	var lastHealthCheck, createdAt any
-	var featuresRaw []byte
-	if err := rows.Scan(
-		&a.ID, &a.Name, &desc, &icon, &url, &a.SchemaName, &schemaURL,
-		&a.Status, &lastHealthCheck, &a.SortOrder, &featuresRaw, &createdAt,
-	); err != nil {
-		return nil, err
-	}
-	a.Description = desc
-	a.Icon = icon
-	a.URL = url
-	a.SchemaURL = schemaURL
-	if lastHealthCheck != nil {
-		if t := asTime(lastHealthCheck); !t.IsZero() {
-			ts := formatTime(t)
-			a.LastHealthCheck = &ts
-		}
-	}
-	a.AvailableFeatures = parseSliceJSON(featuresRaw)
-	if createdAt != nil {
-		a.CreatedAt = formatTime(asTime(createdAt))
-	}
-	return &a, nil
-}
-
-// ensure unused import for json (kept for scanApp jsonb usage clarity).
-var _ = json.Marshal

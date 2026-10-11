@@ -40,32 +40,10 @@ export const env = {
     import.meta.env.PUBLIC_SITE_URL,
     ""
   ),
-  supabaseUrl: resolvePublicEnv(
-    ["PUBLIC_SUPABASE_URL", "SUPABASE_URL"],
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    ""
-  ),
-  supabaseAnonKey: resolvePublicEnv(
-    [
-      "PUBLIC_SUPABASE_ANON_KEY",
-      "SUPABASE_ANON_KEY",
-      "PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-      "SUPABASE_PUBLISHABLE_KEY",
-    ],
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
-      import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    ""
-  ),
-  supabasePublishableKey: resolvePublicEnv(
-    [
-      "PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-      "SUPABASE_PUBLISHABLE_KEY",
-      "PUBLIC_SUPABASE_ANON_KEY",
-      "SUPABASE_ANON_KEY",
-    ],
-    import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-    ""
+  pocketbaseUrl: resolvePublicEnv(
+    ["PUBLIC_POCKETBASE_URL", "POCKETBASE_URL"],
+    import.meta.env.PUBLIC_POCKETBASE_URL,
+    "https://db-pusdatin.kemenag-baritoutara.com"
   ),
   turnstileSiteKey: resolvePublicEnv(
     ["PUBLIC_TURNSTILE_SITE_KEY", "TURNSTILE_SITE_KEY"],

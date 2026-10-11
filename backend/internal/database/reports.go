@@ -3,154 +3,174 @@ package database
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"sort"
 	"time"
+
+	"pusdatin/backend/internal/domain"
 )
 
-func (s *Store) ReportActivity(ctx context.Context, days int) ([]ActivityPoint, error) {
-	rows, err := s.pool.Query(ctx, `
-		SELECT to_char(DATE(timestamp), 'YYYY-MM-DD'), COUNT(*)::int
-		FROM kemenag_pusdatin.audit_logs
-		WHERE timestamp >= CURRENT_DATE - ($1 || ' days')::interval
-		GROUP BY DATE(timestamp)
-		ORDER BY DATE(timestamp) ASC`, days)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	points := []ActivityPoint{}
-	for rows.Next() {
-		var p ActivityPoint
-		if err := rows.Scan(&p.Date, &p.Count); err != nil {
-			return nil, err
-		}
-		points = append(points, p)
-	}
-	return points, rows.Err()
+type pbSystemMetric struct {
+	ID         string `json:"id"`
+	CPU        int    `json:"cpu"`
+	RAM        int    `json:"ram"`
+	Storage    int    `json:"storage"`
+	Uptime     string `json:"uptime"`
+	RecordedAt string `json:"recorded_at"`
+	Created    string `json:"created"`
 }
 
-// ReportAppSummary returns audit counts per satellite app over the last 30 days.
-func (s *Store) ReportAppSummary(ctx context.Context) ([]AppSummaryItem, error) {
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+func (s *Store) ReportActivity(ctx context.Context, days int) ([]domain.ActivityPoint, error) {
+	if days <= 0 {
+		days = 7
+	}
+	cutoff := time.Now().AddDate(0, 0, -days).Format("2006-01-02")
+	params := url.Values{}
+	params.Set("filter", fmt.Sprintf("timestamp >= '%s'", cutoff))
+	params.Set("perPage", "1000")
 
-	appRows, err := s.pool.Query(ctx, `
-		SELECT name, schema_name FROM kemenag_pusdatin.satellite_apps ORDER BY sort_order ASC`)
+	var logs []pbAuditLog
+	_, err := s.ListRecords(ctx, "audit_logs", params, &logs)
 	if err != nil {
 		return nil, err
 	}
-	type appRef struct{ name, schema string }
-	apps := []appRef{}
-	for appRows.Next() {
-		var a appRef
-		if err := appRows.Scan(&a.name, &a.schema); err != nil {
-			appRows.Close()
-			return nil, err
+
+	dateCounts := make(map[string]int)
+	for _, l := range logs {
+		ts := l.Timestamp
+		if ts == "" {
+			ts = l.Created
 		}
-		apps = append(apps, a)
-	}
-	appRows.Close()
-	if err := appRows.Err(); err != nil {
-		return nil, err
+		if len(ts) >= 10 {
+			dateStr := ts[:10]
+			dateCounts[dateStr]++
+		}
 	}
 
-	counts := map[string]int64{}
-	logRows, err := s.pool.Query(ctx, `
-		SELECT COALESCE(target_schema, ''), COUNT(*)::bigint
-		FROM kemenag_pusdatin.audit_logs
-		WHERE timestamp >= $1
-		GROUP BY COALESCE(target_schema, '')`, thirtyDaysAgo)
+	var dates []string
+	for d := range dateCounts {
+		dates = append(dates, d)
+	}
+	sort.Strings(dates)
+
+	points := make([]domain.ActivityPoint, len(dates))
+	for i, d := range dates {
+		points[i] = domain.ActivityPoint{
+			Date:  d,
+			Count: dateCounts[d],
+		}
+	}
+	return points, nil
+}
+
+func (s *Store) ReportAppSummary(ctx context.Context) ([]domain.AppSummaryItem, error) {
+	apps, err := s.ListApps(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for logRows.Next() {
-		var schema string
-		var count int64
-		if err := logRows.Scan(&schema, &count); err != nil {
-			logRows.Close()
-			return nil, err
-		}
-		counts[schema] = count
-	}
-	logRows.Close()
-	if err := logRows.Err(); err != nil {
-		return nil, err
+
+	cutoff := time.Now().AddDate(0, 0, -30).Format("2006-01-02")
+	params := url.Values{}
+	params.Set("filter", fmt.Sprintf("timestamp >= '%s'", cutoff))
+	params.Set("perPage", "1000")
+
+	var logs []pbAuditLog
+	_, _ = s.ListRecords(ctx, "audit_logs", params, &logs)
+
+	counts := make(map[string]int64)
+	for _, l := range logs {
+		counts[l.TargetSchema]++
 	}
 
 	colors := []string{"#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"}
-	result := []AppSummaryItem{}
+	result := make([]domain.AppSummaryItem, len(apps))
 	for i, app := range apps {
-		result = append(result, AppSummaryItem{
-			AppName: app.name,
-			Count:   counts[app.schema],
+		result[i] = domain.AppSummaryItem{
+			AppName: app.Name,
+			Count:   counts[app.SchemaName],
 			Color:   colors[i%len(colors)],
-		})
+		}
 	}
 	return result, nil
 }
 
-func (s *Store) DashboardStats(ctx context.Context) (*DashboardStats, error) {
-	st := &DashboardStats{}
-	var err error
+func (s *Store) DashboardStats(ctx context.Context) (*domain.DashboardStats, error) {
+	st := &domain.DashboardStats{}
 
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.satellite_apps`).Scan(&st.TotalApps); err != nil {
-		return nil, fmt.Errorf("total apps: %w", err)
+	p1 := url.Values{}
+	p1.Set("perPage", "1")
+	st.TotalApps, _ = s.ListRecords(ctx, "satellite_apps", p1, nil)
+
+	p2 := url.Values{}
+	p2.Set("perPage", "1")
+	p2.Set("filter", "status = 'online'")
+	st.OnlineApps, _ = s.ListRecords(ctx, "satellite_apps", p2, nil)
+
+	p3 := url.Values{}
+	p3.Set("perPage", "1")
+	p3.Set("filter", "is_active = true")
+	st.TotalAnnouncements, _ = s.ListRecords(ctx, "announcements", p3, nil)
+
+	p4 := url.Values{}
+	p4.Set("perPage", "1")
+	st.TotalLogs, _ = s.ListRecords(ctx, "audit_logs", p4, nil)
+
+	today := time.Now().Format("2006-01-02")
+	p5 := url.Values{}
+	p5.Set("perPage", "1")
+	p5.Set("filter", fmt.Sprintf("timestamp >= '%s'", today))
+	st.TodayLogs, _ = s.ListRecords(ctx, "audit_logs", p5, nil)
+
+	p6 := url.Values{}
+	p6.Set("perPage", "1")
+	p6.Set("filter", "role = 'super_admin'")
+	st.SuperAdminCount, _ = s.ListRecords(ctx, "profiles", p6, nil)
+	if st.SuperAdminCount == 0 {
+		st.SuperAdminCount = 1
 	}
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.satellite_apps WHERE status = 'online'`).Scan(&st.OnlineApps); err != nil {
-		return nil, fmt.Errorf("online apps: %w", err)
-	}
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.announcements WHERE is_active = true`).Scan(&st.TotalAnnouncements); err != nil {
-		return nil, fmt.Errorf("total announcements: %w", err)
-	}
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.audit_logs`).Scan(&st.TotalLogs); err != nil {
-		return nil, fmt.Errorf("total logs: %w", err)
-	}
-	if err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM kemenag_pusdatin.audit_logs WHERE timestamp >= CURRENT_DATE`).Scan(&st.TodayLogs); err != nil {
-		return nil, fmt.Errorf("today logs: %w", err)
-	}
-	st.SuperAdminCount = 1
+
 	return st, nil
 }
 
-// LatestSystemMetrics returns the most recent metrics row for the health endpoint.
-func (s *Store) LatestSystemMetrics(ctx context.Context) (*SystemHealth, error) {
-	var h SystemHealth
-	var uptime *string
-	var ts any
-	err := s.pool.QueryRow(ctx, `
-		SELECT cpu, ram, storage, uptime, recorded_at
-		FROM kemenag_pusdatin.system_metrics
-		ORDER BY recorded_at DESC LIMIT 1`).
-		Scan(&h.CPU, &h.RAM, &h.Storage, &uptime, &ts)
-	if err != nil {
-		return nil, err
+func (s *Store) LatestSystemMetrics(ctx context.Context) (*domain.SystemHealth, error) {
+	params := url.Values{}
+	params.Set("sort", "-created")
+	params.Set("perPage", "1")
+
+	var metrics []pbSystemMetric
+	total, err := s.ListRecords(ctx, "system_metrics", params, &metrics)
+	if err != nil || total == 0 || len(metrics) == 0 {
+		return &domain.SystemHealth{
+			CPU:        0,
+			RAM:        0,
+			Storage:    0,
+			Uptime:     "N/A",
+			RecordedAt: time.Now().UTC().Format(time.RFC3339),
+		}, nil
 	}
-	if uptime != nil {
-		h.Uptime = *uptime
-	} else {
-		h.Uptime = "N/A"
+
+	m := metrics[0]
+	rAt := m.RecordedAt
+	if rAt == "" {
+		rAt = m.Created
 	}
-	h.RecordedAt = formatTime(asTime(ts))
-	return &h, nil
+	return &domain.SystemHealth{
+		CPU:        m.CPU,
+		RAM:        m.RAM,
+		Storage:    m.Storage,
+		Uptime:     m.Uptime,
+		RecordedAt: rAt,
+	}, nil
 }
 
-// SaveSystemMetrics persists a metrics snapshot for the health endpoint and keeps only the latest 100 records.
-func (s *Store) SaveSystemMetrics(ctx context.Context, h SystemHealth) error {
-	_, err := s.pool.Exec(ctx, `
-		INSERT INTO kemenag_pusdatin.system_metrics (cpu, ram, storage, uptime)
-		VALUES ($1, $2, $3, $4)`,
-		h.CPU, h.RAM, h.Storage, h.Uptime)
-	if err != nil {
-		return err
+func (s *Store) SaveSystemMetrics(ctx context.Context, h domain.SystemHealth) error {
+	now := time.Now().UTC().Format("2006-01-02 15:04:05.000Z")
+	payload := map[string]any{
+		"cpu":         h.CPU,
+		"ram":         h.RAM,
+		"storage":     h.Storage,
+		"uptime":      h.Uptime,
+		"recorded_at": now,
 	}
-
-	// Auto-prune to keep only the latest 100 snapshots, preventing database bloat
-	_, _ = s.pool.Exec(ctx, `
-		DELETE FROM kemenag_pusdatin.system_metrics
-		WHERE id NOT IN (
-			SELECT id FROM kemenag_pusdatin.system_metrics
-			ORDER BY recorded_at DESC
-			LIMIT 100
-		)`)
-
-	return nil
+	return s.CreateRecord(ctx, "system_metrics", payload, nil)
 }
