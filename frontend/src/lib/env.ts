@@ -35,34 +35,46 @@ function resolvePublicEnv(
 }
 
 export const env = {
-  siteUrl: resolvePublicEnv(
-    ["PUBLIC_SITE_URL", "SITE_URL"],
-    import.meta.env.PUBLIC_SITE_URL,
-    ""
-  ),
-  pocketbaseUrl: resolvePublicEnv(
-    ["PUBLIC_POCKETBASE_URL", "POCKETBASE_URL"],
-    import.meta.env.PUBLIC_POCKETBASE_URL,
-    ""
-  ),
-  turnstileSiteKey: resolvePublicEnv(
-    ["PUBLIC_TURNSTILE_SITE_KEY", "TURNSTILE_SITE_KEY"],
-    import.meta.env.PUBLIC_TURNSTILE_SITE_KEY,
-    ""
-  ),
-  gaMeasurementId: resolvePublicEnv(
-    ["PUBLIC_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID"],
-    import.meta.env.PUBLIC_GA_MEASUREMENT_ID,
-    ""
-  ),
-  gtmId: resolvePublicEnv(
-    ["PUBLIC_GTM_ID", "GTM_ID"],
-    import.meta.env.PUBLIC_GTM_ID,
-    ""
-  ),
-  cfBeaconToken: resolvePublicEnv(
-    ["PUBLIC_CF_BEACON_TOKEN", "CF_BEACON_TOKEN"],
-    import.meta.env.PUBLIC_CF_BEACON_TOKEN,
-    ""
-  ),
+  get siteUrl(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_SITE_URL", "SITE_URL"],
+      import.meta.env.PUBLIC_SITE_URL,
+      ""
+    );
+  },
+  get pocketbaseUrl(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_POCKETBASE_URL", "POCKETBASE_URL"],
+      import.meta.env.PUBLIC_POCKETBASE_URL,
+      ""
+    );
+  },
+  get turnstileSiteKey(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_TURNSTILE_SITE_KEY", "TURNSTILE_SITE_KEY"],
+      import.meta.env.PUBLIC_TURNSTILE_SITE_KEY,
+      ""
+    );
+  },
+  get gaMeasurementId(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_GA_MEASUREMENT_ID", "GA_MEASUREMENT_ID"],
+      import.meta.env.PUBLIC_GA_MEASUREMENT_ID,
+      ""
+    );
+  },
+  get gtmId(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_GTM_ID", "GTM_ID"],
+      import.meta.env.PUBLIC_GTM_ID,
+      ""
+    );
+  },
+  get cfBeaconToken(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_CF_BEACON_TOKEN", "CF_BEACON_TOKEN"],
+      import.meta.env.PUBLIC_CF_BEACON_TOKEN,
+      ""
+    );
+  },
 };
