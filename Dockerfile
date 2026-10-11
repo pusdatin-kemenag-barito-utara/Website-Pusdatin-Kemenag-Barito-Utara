@@ -54,9 +54,9 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 # Install runtime tools, utilities, and Infisical CLI
-RUN apk add --no-cache ca-certificates tzdata curl wget bash dos2unix \
-  && curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh' | bash \
-  && apk add --no-cache infisical
+RUN apk add --no-cache ca-certificates tzdata curl wget bash sudo dos2unix \
+  && curl -1sLf 'https://artifacts-cli.infisical.com/setup.apk.sh' | sh \
+  && apk update && apk add --no-cache infisical
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
