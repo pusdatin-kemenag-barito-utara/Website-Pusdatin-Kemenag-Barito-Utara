@@ -12,7 +12,7 @@ const description =
 const canonical = "/";
 
 const landingData = await getLandingData();
-const serializedStats = JSON.parse(JSON.stringify(landingData.stats));
+const serializedStats = landingData.stats;
 ---
 
 <BaseLayout {title} {description} {canonical}>
