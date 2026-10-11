@@ -43,7 +43,7 @@ export const env = {
   pocketbaseUrl: resolvePublicEnv(
     ["PUBLIC_POCKETBASE_URL", "POCKETBASE_URL"],
     import.meta.env.PUBLIC_POCKETBASE_URL,
-    "https://db-pusdatin.kemenag-baritoutara.com"
+    ""
   ),
   turnstileSiteKey: resolvePublicEnv(
     ["PUBLIC_TURNSTILE_SITE_KEY", "TURNSTILE_SITE_KEY"],

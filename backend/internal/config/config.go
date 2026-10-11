@@ -54,28 +54,28 @@ func Load() (*Config, error) {
 
 	env := getEnv("NODE_ENV", getEnv("APP_ENV", "development"))
 
-	pbURL := getEnv("POCKETBASE_URL", getEnv("PUBLIC_POCKETBASE_URL", "https://db-pusdatin.kemenag-baritoutara.com"))
-	pbAdminEmail := getEnv("POCKETBASE_ADMIN_EMAIL", getEnv("SUPER_ADMIN_EMAIL", "baritoutara@kemenag.go.id"))
-	pbAdminPassword := getEnv("POCKETBASE_ADMIN_PASSWORD", "@Kemenag_126")
+	pbURL := getEnv("POCKETBASE_URL", os.Getenv("PUBLIC_POCKETBASE_URL"))
+	pbAdminEmail := getEnv("POCKETBASE_ADMIN_EMAIL", os.Getenv("SUPER_ADMIN_EMAIL"))
+	pbAdminPassword := os.Getenv("POCKETBASE_ADMIN_PASSWORD")
 
 	cfg := &Config{
-		Port:                    getEnv("BACKEND_PORT", "8080"),
+		Port:                    getEnv("BACKEND_PORT", getEnv("PORT", "8080")),
 		PocketBaseURL:           pbURL,
 		PocketBaseAdminEmail:    pbAdminEmail,
 		PocketBaseAdminPassword: pbAdminPassword,
 		TurnstileSecretKey:      os.Getenv("TURNSTILE_SECRET_KEY"),
 		TrustedDeviceSecret:     os.Getenv("TRUSTED_DEVICE_SECRET"),
-		SuperAdminEmail:         getEnv("SUPER_ADMIN_EMAIL", "baritoutara@kemenag.go.id"),
+		SuperAdminEmail:         os.Getenv("SUPER_ADMIN_EMAIL"),
 		CloudflareAccountID:     os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
 		CloudflareAPIToken:      os.Getenv("CLOUDFLARE_API_TOKEN"),
 		R2AccessKeyID:           os.Getenv("R2_ACCESS_KEY_ID"),
 		R2SecretAccessKey:       os.Getenv("R2_SECRET_ACCESS_KEY"),
 		R2EndpointURL:           os.Getenv("R2_ENDPOINT_URL"),
-		R2BucketPusdatin:        getEnv("R2_BUCKET_PUSDATIN", "data-pusdatin"),
-		R2BucketBackup:          getEnv("R2_BUCKET_BACKUP", "database-back-up-daily"),
-		R2PublicURL:             getEnv("R2_PUBLIC_URL", "https://files.kemenag-baritoutara.com/pusdatin"),
+		R2BucketPusdatin:        os.Getenv("R2_BUCKET_PUSDATIN"),
+		R2BucketBackup:          os.Getenv("R2_BUCKET_BACKUP"),
+		R2PublicURL:             os.Getenv("R2_PUBLIC_URL"),
 		RedisURL:                os.Getenv("REDIS_URL"),
-		SiteURL:                 getEnv("PUBLIC_SITE_URL", getEnv("SITE_URL", "https://pusdatin.kemenag-baritoutara.com")),
+		SiteURL:                 getEnv("PUBLIC_SITE_URL", os.Getenv("SITE_URL")),
 		IsProduction:            env == "production" || env == "prod",
 	}
 
@@ -87,21 +87,22 @@ func Load() (*Config, error) {
 
 func (c *Config) validate() error {
 	required := map[string]string{
-		"POCKETBASE_URL":           c.PocketBaseURL,
-		"POCKETBASE_ADMIN_EMAIL":   c.PocketBaseAdminEmail,
+		"POCKETBASE_URL":            c.PocketBaseURL,
+		"POCKETBASE_ADMIN_EMAIL":    c.PocketBaseAdminEmail,
 		"POCKETBASE_ADMIN_PASSWORD": c.PocketBaseAdminPassword,
-		"TURNSTILE_SECRET_KEY":     c.TurnstileSecretKey,
-		"TRUSTED_DEVICE_SECRET":    c.TrustedDeviceSecret,
-		"SUPER_ADMIN_EMAIL":        c.SuperAdminEmail,
-		"CLOUDFLARE_ACCOUNT_ID":    c.CloudflareAccountID,
-		"CLOUDFLARE_API_TOKEN":     c.CloudflareAPIToken,
-		"R2_ACCESS_KEY_ID":         c.R2AccessKeyID,
-		"R2_SECRET_ACCESS_KEY":     c.R2SecretAccessKey,
-		"R2_ENDPOINT_URL":          c.R2EndpointURL,
+		"TURNSTILE_SECRET_KEY":      c.TurnstileSecretKey,
+		"TRUSTED_DEVICE_SECRET":     c.TrustedDeviceSecret,
+		"SUPER_ADMIN_EMAIL":         c.SuperAdminEmail,
+		"CLOUDFLARE_ACCOUNT_ID":     c.CloudflareAccountID,
+		"CLOUDFLARE_API_TOKEN":      c.CloudflareAPIToken,
+		"R2_ACCESS_KEY_ID":          c.R2AccessKeyID,
+		"R2_SECRET_ACCESS_KEY":      c.R2SecretAccessKey,
+		"R2_ENDPOINT_URL":           c.R2EndpointURL,
+		"R2_BUCKET_BACKUP":          c.R2BucketBackup,
 	}
 	for name, val := range required {
 		if val == "" {
-			return fmt.Errorf("missing required env var: %s", name)
+			return fmt.Errorf("missing required environment variable from Infisical: %s", name)
 		}
 	}
 	if c.TrustedDeviceSecret == c.TurnstileSecretKey {

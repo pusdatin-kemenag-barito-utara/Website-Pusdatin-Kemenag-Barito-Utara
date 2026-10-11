@@ -8,7 +8,7 @@ export function getPocketBaseClient(): PocketBase {
     return cachedClient;
   }
 
-  const url = env.pocketbaseUrl || "https://db-pusdatin.kemenag-baritoutara.com";
+  const url = env.pocketbaseUrl || (typeof window !== "undefined" ? window.location.origin : "");
   cachedClient = new PocketBase(url);
   return cachedClient;
 }

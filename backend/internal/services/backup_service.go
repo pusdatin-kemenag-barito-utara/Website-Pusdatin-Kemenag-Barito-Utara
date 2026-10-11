@@ -94,9 +94,6 @@ func (s *BackupService) GetStatus(ctx context.Context) (*domain.BackupSystemStat
 	s.mu.RUnlock()
 
 	bucket := s.cfg.R2BucketBackup
-	if bucket == "" {
-		bucket = "database-back-up-daily"
-	}
 
 	totalSnapshots := 0
 	snapshots, err := s.ListSnapshots(ctx)
@@ -141,9 +138,6 @@ func (s *BackupService) RunBackup(ctx context.Context, triggeredBy string) (*dom
 	log.Printf("🚀 [BACKUP START] Memulai pencadangan PocketBase penuh (Folder: %s, Trigger: %s)...", folderName, triggeredBy)
 
 	bucket := s.cfg.R2BucketBackup
-	if bucket == "" {
-		bucket = "database-back-up-daily"
-	}
 
 	s3Client, err := s.storageService.S3Client(ctx)
 	if err != nil {
@@ -327,9 +321,6 @@ func (s *BackupService) dumpCollection(ctx context.Context, colName string) ([]b
 // ListSnapshots returns all backup manifests stored in Cloudflare R2.
 func (s *BackupService) ListSnapshots(ctx context.Context) ([]domain.BackupSnapshot, error) {
 	bucket := s.cfg.R2BucketBackup
-	if bucket == "" {
-		bucket = "database-back-up-daily"
-	}
 
 	s3Client, err := s.storageService.S3Client(ctx)
 	if err != nil {
@@ -413,9 +404,6 @@ func (s *BackupService) ListSnapshots(ctx context.Context) ([]domain.BackupSnaps
 
 func (s *BackupService) DownloadFile(ctx context.Context, key string) ([]byte, string, string, error) {
 	bucket := s.cfg.R2BucketBackup
-	if bucket == "" {
-		bucket = "database-back-up-daily"
-	}
 
 	s3Client, err := s.storageService.S3Client(ctx)
 	if err != nil {
@@ -447,9 +435,6 @@ func (s *BackupService) DownloadFile(ctx context.Context, key string) ([]byte, s
 
 func (s *BackupService) DeleteSnapshot(ctx context.Context, folder string) error {
 	bucket := s.cfg.R2BucketBackup
-	if bucket == "" {
-		bucket = "database-back-up-daily"
-	}
 
 	s3Client, err := s.storageService.S3Client(ctx)
 	if err != nil {
