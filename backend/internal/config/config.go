@@ -38,6 +38,8 @@ type Config struct {
 
 	SiteURL string
 
+	SentryDSN string
+
 	IsProduction bool
 }
 
@@ -89,6 +91,7 @@ func Load() (*Config, error) {
 		R2PublicURL:             os.Getenv("R2_PUBLIC_URL"),
 		RedisURL:                os.Getenv("REDIS_URL"),
 		SiteURL:                 getEnv("PUBLIC_SITE_URL", os.Getenv("SITE_URL")),
+		SentryDSN:               getEnv("SENTRY_DSN", os.Getenv("PUBLIC_SENTRY_DSN")),
 		IsProduction:            env == "production" || env == "prod",
 	}
 

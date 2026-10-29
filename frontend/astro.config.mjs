@@ -1,4 +1,5 @@
 import { defineConfig } from "astro/config";
+import sentry from "@sentry/astro";
 import react from "@astrojs/react";
 import node from "@astrojs/node";
 import tailwindcss from "@tailwindcss/vite";
@@ -18,6 +19,7 @@ export default defineConfig({
   adapter: node({ mode: "standalone" }),
   site: process.env.PUBLIC_SITE_URL || undefined,
   integrations: [
+    sentry(),
     react(),
     AstroPWA({
       registerType: "autoUpdate",

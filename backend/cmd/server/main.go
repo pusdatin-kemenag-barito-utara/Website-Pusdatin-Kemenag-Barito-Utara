@@ -53,11 +53,12 @@ func main() {
 
 	// 5. Setup Fiber Web Server
 	app := fiber.New(fiber.Config{
-		AppName:        "PTSP Kemenag Barito Utara API (Enterprise Clean Architecture v3.0)",
+		AppName:        "Pusdatin Kemenag Barito Utara API (Enterprise Clean Architecture v3.0)",
 		BodyLimit:      10 * 1024 * 1024,
 		ReadBufferSize: 32 * 1024, // 32KB buffer to handle large cookie headers (prevents HTTP 431)
 	})
 	app.Use(recover.New())
+	app.Use(middleware.InitSentry(cfg.SentryDSN))
 	app.Use(middleware.EnterpriseLogger())
 	app.Use(middleware.EnterpriseHeadersMiddleware())
 

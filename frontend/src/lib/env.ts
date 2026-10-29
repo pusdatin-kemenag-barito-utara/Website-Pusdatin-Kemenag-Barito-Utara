@@ -85,4 +85,11 @@ export const env = {
       ""
     );
   },
+  get sentryDsn(): string {
+    return resolvePublicEnv(
+      ["PUBLIC_SENTRY_DSN", "SENTRY_DSN"],
+      import.meta.env.PUBLIC_SENTRY_DSN,
+      ""
+    );
+  },
 };
