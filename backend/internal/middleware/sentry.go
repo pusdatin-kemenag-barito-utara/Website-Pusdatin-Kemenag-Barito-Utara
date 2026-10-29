@@ -55,3 +55,4 @@ func InitSentry(dsn string) fiber.Handler {
 		Timeout:         2 * time.Second,
 	})
 }
+
