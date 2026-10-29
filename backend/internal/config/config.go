@@ -32,7 +32,6 @@ type Config struct {
 	R2SecretAccessKey string
 	R2EndpointURL     string
 	R2BucketPusdatin  string
-	R2BucketBackup    string
 	R2PublicURL       string
 
 	RedisURL string
@@ -87,7 +86,6 @@ func Load() (*Config, error) {
 		R2SecretAccessKey:       os.Getenv("R2_SECRET_ACCESS_KEY"),
 		R2EndpointURL:           os.Getenv("R2_ENDPOINT_URL"),
 		R2BucketPusdatin:        os.Getenv("R2_BUCKET_PUSDATIN"),
-		R2BucketBackup:          os.Getenv("R2_BUCKET_BACKUP"),
 		R2PublicURL:             os.Getenv("R2_PUBLIC_URL"),
 		RedisURL:                os.Getenv("REDIS_URL"),
 		SiteURL:                 getEnv("PUBLIC_SITE_URL", os.Getenv("SITE_URL")),
@@ -114,7 +112,6 @@ func (c *Config) validate() error {
 		"R2_ACCESS_KEY_ID":          c.R2AccessKeyID,
 		"R2_SECRET_ACCESS_KEY":      c.R2SecretAccessKey,
 		"R2_ENDPOINT_URL":           c.R2EndpointURL,
-		"R2_BUCKET_BACKUP":          c.R2BucketBackup,
 	}
 	for name, val := range required {
 		if val == "" {

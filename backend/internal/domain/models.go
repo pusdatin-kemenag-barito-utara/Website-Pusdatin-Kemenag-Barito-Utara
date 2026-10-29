@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 // AppPermission defines access permissions for satellite apps.
 type AppPermission struct {
 	AppID    string `json:"appId"`
@@ -73,15 +71,6 @@ type LandingData struct {
 	Apps  []App        `json:"apps"`
 }
 
-// SystemHealth represents a persisted snapshot of server resource utilization.
-type SystemHealth struct {
-	CPU        int    `json:"cpu"`
-	RAM        int    `json:"ram"`
-	Storage    int    `json:"storage"`
-	Uptime     string `json:"uptime"`
-	RecordedAt string `json:"recordedAt,omitempty"`
-}
-
 // TrustedDevice represents a remembered client device for 2FA bypass.
 type TrustedDevice struct {
 	ID         string  `json:"id"`
@@ -92,43 +81,6 @@ type TrustedDevice struct {
 	ExpiresAt  *string `json:"expiresAt"`
 	CreatedAt  string  `json:"createdAt"`
 	IPAddress  *string `json:"ipAddress"`
-}
-
-// RealtimeMetrics represents live host metrics polled on-demand.
-type RealtimeMetrics struct {
-	CPU     RealtimeCPU     `json:"cpu"`
-	RAM     RealtimeRAM     `json:"ram"`
-	Storage RealtimeStorage `json:"storage"`
-	Network RealtimeNetwork `json:"network"`
-	Uptime  uint64          `json:"uptime"`
-}
-
-type RealtimeCPU struct {
-	Load    float64 `json:"load"`
-	AvgLoad float64 `json:"avgLoad"`
-	Cores   int     `json:"cores"`
-}
-
-type RealtimeRAM struct {
-	Total uint64 `json:"total"`
-	Used  uint64 `json:"used"`
-	Free  uint64 `json:"free"`
-}
-
-type RealtimeStorage struct {
-	Total uint64 `json:"total"`
-	Used  uint64 `json:"used"`
-}
-
-type RealtimeNetwork struct {
-	RxSec float64 `json:"rxSec"`
-	TxSec float64 `json:"txSec"`
-}
-
-// SystemMetricsSample is a helper for metrics collection.
-type SystemMetricsSample struct {
-	Metrics RealtimeMetrics
-	At      time.Time
 }
 
 // Announcement represents an official public announcement or system update notice.

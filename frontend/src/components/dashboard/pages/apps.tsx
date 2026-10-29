@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { AppGrid } from "@/components/apps/AppGrid";
 import { AppForm } from "@/components/apps/AppForm";
 import { useApps, useToggleMaintenance, useBulkToggleMaintenance, useCreateApp } from "@/hooks/use-apps";
@@ -86,18 +85,24 @@ export function AppsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <h3 className="font-semibold text-slate-900 dark:text-white">Status Aplikasi Satelit</h3>
-        </CardHeader>
-        <CardBody>
-          <AppGrid
-            apps={apps || []}
-            loading={isLoading}
-            onToggle={handleToggle}
-          />
-        </CardBody>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              Status Aplikasi Satelit
+            </h2>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
+              {apps?.length || 0} Aplikasi
+            </span>
+          </div>
+        </div>
+
+        <AppGrid
+          apps={apps || []}
+          loading={isLoading}
+          onToggle={handleToggle}
+        />
+      </div>
 
       <Dialog
         open={!!confirmBulkStatus}
@@ -133,6 +138,7 @@ export function AppsPage() {
         open={showAddApp}
         onClose={() => setShowAddApp(false)}
         title="Tambah Aplikasi Satelit Baru"
+        size="lg"
       >
         <AppForm
           onSubmit={handleCreateApp}

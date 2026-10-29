@@ -33,7 +33,7 @@ export default defineConfig({
     envDir: "../",
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["recharts", "react-router-dom", "@tanstack/react-query", "lucide-react", "date-fns"],
+      include: ["react-router-dom", "@tanstack/react-query", "lucide-react", "date-fns"],
     },
   },
   server: {

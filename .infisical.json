@@ -1,6 +1,5 @@
 {
-    "workspaceId": "ad5be957-3c8a-4c2e-b21e-3838cc3a7c0e",
-    "defaultEnvironment": "prod",
-    "gitBranchToEnvironmentMapping": null,
-    "domain": "https://app.infisical.com/api"
+  "workspaceId": "ad5be957-3c8a-4c2e-b21e-3838cc3a7c0e",
+  "defaultEnvironment": "prod",
+  "gitBranchToEnvironmentMapping": null
 }

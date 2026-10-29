@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"pusdatin/backend/internal/services"
-	"pusdatin/backend/internal/utils"
 )
 
 type StorageHandler struct {
@@ -74,13 +73,4 @@ func (h *StorageHandler) UploadsProxy(c fiber.Ctx) error {
 	c.Set("Cache-Control", "public, max-age=31536000, immutable")
 
 	return c.Send(result.Data)
-}
-
-// R2Buckets mirrors /api/r2/buckets (Cloudflare REST API).
-func (h *StorageHandler) R2Buckets(c fiber.Ctx) error {
-	buckets, err := h.storageService.GetR2Buckets(c.Context())
-	if err != nil {
-		return utils.Internal(c, "Failed to fetch R2 data")
-	}
-	return c.JSON(fiber.Map{"success": true, "buckets": buckets})
 }

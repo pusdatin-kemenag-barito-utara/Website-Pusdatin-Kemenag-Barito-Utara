@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import type { SateliteApp, SystemHealth } from "@/types";
+import type { SateliteApp } from "@/types";
 
 export function useApps() {
   return useQuery<SateliteApp[]>({
@@ -42,14 +42,6 @@ export function useUpdateApp() {
   });
 }
 
-export function useSystemHealth() {
-  return useQuery<SystemHealth>({
-    queryKey: ["system-health"],
-    queryFn: () => api.get<SystemHealth>("/system/health"),
-    refetchInterval: (query) => (query.state.error ? false : 10000),
-    retry: false,
-  });
-}
 
 export function useCreateApp() {
   const qc = useQueryClient();

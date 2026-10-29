@@ -2,13 +2,13 @@
 # Multi-Stage Dockerfile untuk Coolify (Go Fiber Backend + Astro Node Frontend)
 # ==============================================================================
 
-# STAGE 1: Build Backend Go Binary
-FROM golang:1.23-alpine AS backend-builder
+# STAGE 1: Build Backend Go Binary (Latest Go 1.24 Alpine with Security Patches)
+FROM golang:1.24-alpine AS backend-builder
 WORKDIR /app/backend
 ENV GOTOOLCHAIN=auto
 
-# Install build dependencies
-RUN apk add --no-cache git gcc musl-dev
+# Update Alpine security packages and install build dependencies
+RUN apk update && apk upgrade --no-cache && apk add --no-cache git gcc musl-dev
 
 # Copy Go mod & sum files
 COPY backend/go.mod backend/go.sum ./
@@ -22,9 +22,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/backend/bin/api .
 
 # ------------------------------------------------------------------------------
 
-# STAGE 2: Build Frontend Astro Static/SSR Assets
+# STAGE 2: Build Frontend Astro Static/SSR Assets (Node 22 LTS Alpine with Security Patches)
 FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
+
+# Update Alpine security packages
+RUN apk update && apk upgrade --no-cache
 
 # Copy frontend package files
 COPY frontend/package.json frontend/package-lock.json* ./
@@ -49,12 +52,13 @@ RUN npm run build
 
 # ------------------------------------------------------------------------------
 
-# STAGE 3: Production Runner Container
+# STAGE 3: Production Runner Container (Node 22 LTS Alpine Hardened)
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Install runtime tools, utilities, and Infisical CLI
-RUN apk add --no-cache ca-certificates tzdata curl wget bash sudo dos2unix \
+# Update system security packages and install essential runtime tools & Infisical CLI
+RUN apk update && apk upgrade --no-cache \
+  && apk add --no-cache ca-certificates tzdata curl wget bash sudo dos2unix \
   && curl -1sLf 'https://artifacts-cli.infisical.com/setup.apk.sh' | sh \
   && apk update && apk add --no-cache infisical
 
@@ -65,8 +69,8 @@ ENV ASTRO_NODE_LOGGING=disabled
 ENV BACKEND_PORT=8080
 ENV BACKEND_URL=http://127.0.0.1:8080
 
-# Install concurrently globally so it is always present in PATH (/usr/local/bin/concurrently)
-RUN npm install -g concurrently
+# Install concurrently globally to latest secure release
+RUN npm install -g concurrently@latest
 
 # Copy Go backend binary from Stage 1 & ensure executable
 COPY --from=backend-builder /app/backend/bin/api /app/backend/bin/api
@@ -87,11 +91,9 @@ EXPOSE 8080
 
 # Explicit Docker Healthcheck for Coolify / Docker Engine
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
-  CMD curl -f http://127.0.0.1:3000/api/health || curl -f http://127.0.0.1:8080/api/health || curl -f http://127.0.0.1:3000/health || exit 1
+  CMD curl -f http://127.0.0.1:3000/health || curl -f http://127.0.0.1:3000/api/health || curl -f http://127.0.0.1:8080/api/health || exit 1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Start both Go Backend and Astro Node Frontend concurrently
 CMD ["concurrently", "-k", "-n", "WEB,API", "-c", "cyan,green", "node frontend/dist/server/entry.mjs", "/app/backend/bin/api"]
-
-

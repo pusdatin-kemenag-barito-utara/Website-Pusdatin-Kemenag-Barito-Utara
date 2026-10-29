@@ -9,5 +9,4 @@ type App = domain.App
 type DashboardStats = domain.DashboardStats
 type LandingStats = domain.LandingStats
 type LandingData = domain.LandingData
-type SystemHealth = domain.SystemHealth
 type TrustedDevice = domain.TrustedDevice

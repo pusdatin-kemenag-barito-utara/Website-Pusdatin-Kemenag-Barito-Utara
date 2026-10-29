@@ -25,17 +25,6 @@ export interface SateliteApp {
   availableFeatures?: { id: string, label: string }[];
 }
 
-export interface SystemHealth {
-  cpu: number;
-  ram: number;
-  storage: number;
-  uptime: string;
-  cpuCores?: number;
-  ramUsedGb?: string | number;
-  ramTotalGb?: string | number;
-  storageUsedGb?: string | number;
-  storageTotalGb?: string | number;
-}
 
 export interface DashboardStats {
   totalApps: number;

@@ -46,10 +46,8 @@ type TrustedDeviceRepository interface {
 	RevokeAllTrustedDevices(ctx context.Context, userID string) error
 }
 
-// SystemRepository specifies data access operations for persisted system health metrics.
+// SystemRepository specifies data access operations for system status and health checks.
 type SystemRepository interface {
-	LatestSystemMetrics(ctx context.Context) (*SystemHealth, error)
-	SaveSystemMetrics(ctx context.Context, h SystemHealth) error
 	Ping(ctx context.Context) error
 }
 

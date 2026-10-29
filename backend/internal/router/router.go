@@ -15,7 +15,6 @@ type Handlers struct {
 	System       *handlers.SystemHandler
 	Storage      *handlers.StorageHandler
 	Announcement *handlers.AnnouncementHandler
-	Backup       *handlers.BackupHandler
 }
 
 // Register wires all HTTP routes with appropriate middlewares and handlers.
@@ -42,9 +41,7 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	// Protected group (admin only)
 	admin := app.Group("/api", middleware.AuthMiddleware(authService), middleware.AdminRequired())
 
-	// System & Stats
-	admin.Get("/system/health", h.System.SystemHealth)
-	admin.Get("/system/realtime", h.System.RealtimeMetrics)
+	// Stats
 	admin.Get("/dashboard/stats", h.Stats.DashboardStats)
 
 	// App Management
@@ -62,15 +59,6 @@ func Register(app *fiber.App, h *Handlers, authService *services.AuthService) {
 	admin.Put("/announcements/:id", h.Announcement.UpdateAnnouncement)
 	admin.Delete("/announcements/:id", h.Announcement.DeleteAnnouncement)
 
-	// File Storage & Cloudflare R2
+	// File Storage (App logos)
 	admin.Post("/upload", h.Storage.UploadFile)
-	admin.Get("/r2/buckets", h.Storage.R2Buckets)
-
-	// Database Backup & Cloudflare R2 Daily Snapshots
-	admin.Post("/backup/trigger", h.Backup.TriggerBackup)
-	admin.Get("/backup/status", h.Backup.GetStatus)
-	admin.Get("/backup/history", h.Backup.ListHistory)
-	admin.Get("/backup/download", h.Backup.DownloadFile)
-	admin.Delete("/backup/snapshots", h.Backup.DeleteSnapshot)
-	admin.Post("/backup/prune", h.Backup.PruneSnapshots)
 }

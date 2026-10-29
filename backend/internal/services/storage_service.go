@@ -3,10 +3,8 @@ package services
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
@@ -27,23 +25,10 @@ type MemoryCachedObject struct {
 	ContentType string
 }
 
-// Shared pooled HTTP client for Cloudflare R2 Management REST API
-var r2APIHTTPClient = &http.Client{
-	Timeout: 10 * time.Second,
-	Transport: &http.Transport{
-		MaxIdleConns:        50,
-		MaxIdleConnsPerHost: 20,
-		IdleConnTimeout:     90 * time.Second,
-		TLSHandshakeTimeout: 3 * time.Second,
-	},
-}
-
 type StorageService struct {
-	cfg           *config.Config
-	cache         map[string]*MemoryCachedObject
-	bucketCache   []map[string]any
-	bucketCacheAt time.Time
-	mu            sync.RWMutex
+	cfg   *config.Config
+	cache map[string]*MemoryCachedObject
+	mu    sync.RWMutex
 }
 
 func NewStorageService(cfg *config.Config) *StorageService {
@@ -242,107 +227,4 @@ func (s *StorageService) ResolveUploadObject(ctx context.Context, filename strin
 		Data:        bodyBytes,
 		ContentType: ct,
 	}, nil
-}
-
-func (s *StorageService) GetR2Buckets(ctx context.Context) ([]map[string]any, error) {
-	if s.cfg.CloudflareAccountID == "" || s.cfg.CloudflareAPIToken == "" {
-		return nil, fmt.Errorf("cloudflare credentials not configured")
-	}
-
-	// 1. Check in-memory 30-second TTL cache to prevent redundant external API hits
-	s.mu.RLock()
-	if len(s.bucketCache) > 0 && time.Since(s.bucketCacheAt) < 30*time.Second {
-		cached := s.bucketCache
-		s.mu.RUnlock()
-		return cached, nil
-	}
-	s.mu.RUnlock()
-
-	base := "https://api.cloudflare.com/client/v4/accounts/" + s.cfg.CloudflareAccountID + "/r2/buckets"
-
-	authHeaders := map[string]string{
-		"Authorization": "Bearer " + s.cfg.CloudflareAPIToken,
-		"Content-Type":  "application/json",
-	}
-
-	listResp, err := httpGetJSON(ctx, r2APIHTTPClient, base, authHeaders)
-	if err != nil {
-		return nil, err
-	}
-	var listData struct {
-		Success bool `json:"success"`
-		Result  struct {
-			Buckets []map[string]any `json:"buckets"`
-		} `json:"result"`
-	}
-	if err := json.Unmarshal(listResp, &listData); err != nil || !listData.Success {
-		return nil, fmt.Errorf("failed to parse cloudflare buckets response")
-	}
-	buckets := listData.Result.Buckets
-	if buckets == nil {
-		buckets = []map[string]any{}
-	}
-
-	fallbackUsage := map[string]any{"payloadSize": 0, "metadataSize": 0, "objectCount": 0, "uploadCount": 0}
-
-	var wg sync.WaitGroup
-	out := make([]map[string]any, len(buckets))
-	for i, bucket := range buckets {
-		wg.Add(1)
-		go func(i int, bucket map[string]any) {
-			defer wg.Done()
-			name, _ := bucket["name"].(string)
-			usage := fallbackUsage
-			if name != "" {
-				usageResp, err := httpGetJSON(ctx, r2APIHTTPClient, base+"/"+name+"/usage", authHeaders)
-				if err == nil {
-					var usageData struct {
-						Success bool           `json:"success"`
-						Result  map[string]any `json:"result"`
-					}
-					if json.Unmarshal(usageResp, &usageData) == nil && usageData.Success && usageData.Result != nil {
-						usage = usageData.Result
-					}
-				}
-			}
-			merged := map[string]any{}
-			for k, v := range bucket {
-				merged[k] = v
-			}
-			merged["usage"] = usage
-			out[i] = merged
-		}(i, bucket)
-	}
-	wg.Wait()
-
-	// Update in-memory cache
-	s.mu.Lock()
-	s.bucketCache = out
-	s.bucketCacheAt = time.Now()
-	s.mu.Unlock()
-
-	return out, nil
-}
-
-func httpGetJSON(ctx context.Context, client *http.Client, url string, headers map[string]string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("status %d", resp.StatusCode)
-	}
-	return body, nil
 }

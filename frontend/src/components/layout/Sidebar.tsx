@@ -5,16 +5,12 @@ import {
   Monitor,
   LogOut,
   X,
-  Server,
   Megaphone,
-  Database,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard/apps", label: "Aplikasi", icon: Monitor },
   { href: "/dashboard/announcements", label: "Pengumuman", icon: Megaphone },
-  { href: "/dashboard/infrastructure", label: "Infrastruktur", icon: Server },
-  { href: "/dashboard/backup", label: "Backup Database", icon: Database },
 ];
 
 interface SidebarProps {

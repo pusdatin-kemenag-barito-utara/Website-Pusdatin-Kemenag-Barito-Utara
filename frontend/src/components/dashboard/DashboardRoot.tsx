@@ -53,9 +53,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 import { AppsPage } from "@/components/dashboard/pages/apps";
-import { InfrastructurePage } from "@/components/dashboard/pages/infrastructure";
 import { AnnouncementsPage } from "@/components/dashboard/pages/announcements";
-import { BackupPage } from "@/components/dashboard/pages/backup";
 
 function DashboardRoutes() {
   return (
@@ -71,8 +69,6 @@ function DashboardRoutes() {
         <Route path="/dashboard" element={<Navigate to="/dashboard/apps" replace />} />
         <Route path="/dashboard/apps" element={<AppsPage />} />
         <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
-        <Route path="/dashboard/infrastructure" element={<InfrastructurePage />} />
-        <Route path="/dashboard/backup" element={<BackupPage />} />
         <Route path="*" element={<Navigate to="/dashboard/apps" replace />} />
       </Routes>
     </Suspense>

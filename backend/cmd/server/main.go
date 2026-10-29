@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"log"
-	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
@@ -22,8 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-
-	ctx := context.Background()
 
 	// 1. Initialize PocketBase Database Repository (Adapter)
 	store, err := database.NewStore(cfg.PocketBaseURL, cfg.PocketBaseAdminEmail, cfg.PocketBaseAdminPassword)
@@ -44,13 +40,8 @@ func main() {
 	systemService := services.NewSystemService(store)
 	storageService := services.NewStorageService(cfg)
 	announcementService := services.NewAnnouncementService(store)
-	backupService := services.NewBackupService(cfg, store, storageService)
 
-	// 4. Background Daemons (Metrics Monitor & Midnight Backup Scheduler)
-	go systemService.StartMetricsMonitor(ctx, 60*time.Second)
-	backupService.StartMidnightScheduler(ctx)
-
-	// 5. Initialize Primary Adapters (HTTP Handlers)
+	// 4. Initialize Primary Adapters (HTTP Handlers)
 	h := &router.Handlers{
 		Auth:         handlers.NewAuthHandler(cfg, authService),
 		App:          handlers.NewAppHandler(appService),
@@ -58,10 +49,9 @@ func main() {
 		System:       handlers.NewSystemHandler(systemService),
 		Storage:      handlers.NewStorageHandler(storageService),
 		Announcement: handlers.NewAnnouncementHandler(announcementService),
-		Backup:       handlers.NewBackupHandler(backupService),
 	}
 
-	// 6. Setup Fiber Web Server
+	// 5. Setup Fiber Web Server
 	app := fiber.New(fiber.Config{
 		AppName:        "PTSP Kemenag Barito Utara API (Enterprise Clean Architecture v3.0)",
 		BodyLimit:      10 * 1024 * 1024,
@@ -71,7 +61,7 @@ func main() {
 	app.Use(middleware.EnterpriseLogger())
 	app.Use(middleware.EnterpriseHeadersMiddleware())
 
-	// 7. Register HTTP Routes
+	// 6. Register HTTP Routes
 	router.Register(app, h, authService)
 
 	log.Printf("✅ Server PTSP Backend (Enterprise Clean Architecture) berjalan di port %s", cfg.Port)
